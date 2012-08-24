@@ -14,9 +14,51 @@ public class Clause {
 		return literals;
 	}
 
+	public boolean containsLiteral(Integer literal) {
+		return this.literals.contains(literal);
+	}
+
+	public void removeLiteral(Integer complementaryLiteral) {
+		this.literals.remove(complementaryLiteral);
+	}
+	
+	public boolean isUnit() {
+		return this.literals.size() == 1;
+	}
+	
+	public boolean isEmpty() {
+		return this.literals.isEmpty();
+	}
+	
 	@Override
 	public String toString() {
 		return "Clause [literals=" + literals + "]";
 	}
-	
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((literals == null) ? 0 : literals.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Clause other = (Clause) obj;
+		if (literals == null) {
+			if (other.literals != null)
+				return false;
+		} else if (!literals.equals(other.literals))
+			return false;
+		return true;
+	}
+
 }

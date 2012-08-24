@@ -1,0 +1,7 @@
+c Satisfiable with minimun of clauses
+c Extracted from voronkov's examples
+c chapter 5 page 19
+p cnf 2 3
+-1 -2 0
+-1 2 0
+1 -2 0
