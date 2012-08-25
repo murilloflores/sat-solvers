@@ -20,7 +20,9 @@ public class DimacsParser implements Parser{
 		
 		File file = new File(filePath);
 		List<String> lines = FileUtils.readLines(file);
-		
+		boolean passedByProblemLine = false;
+		int expectedNumberOfClauses = -1;
+
 		for(String line: lines){
 			
 			line = line.trim();
@@ -29,24 +31,26 @@ public class DimacsParser implements Parser{
 			
 			if (line.startsWith(PROBLEM_LINE_PREFIX)) {
 				checkCNFFormat(line);
-				int numberOfClauses = getNumberOfClauses(line);
-				clauses = new ArrayList<Clause>(numberOfClauses);
+				expectedNumberOfClauses = getNumberOfClauses(line);
+				passedByProblemLine = true;
+				clauses = new ArrayList<Clause>(expectedNumberOfClauses);
 				continue;
 			}
 
-			String[] clauseStrings = line.split(" +");
-			List<Integer> literals =  new ArrayList<Integer>(clauseStrings.length - 1); // removing size for 0 at the end of the lines
-			for(String token: clauseStrings){
+			if(passedByProblemLine && clauses.size() < expectedNumberOfClauses){
 				
-				if(token == null || token.isEmpty()) continue;
-				if("%".equals(token)) continue;
+				String[] clauseStrings = line.split(" +");
+				List<Integer> literals =  new ArrayList<Integer>(clauseStrings.length - 1); // removing size for 0 at the end of the lines
+				for(String token: clauseStrings){
+					Integer literal = new Integer(token);
+					if(literal != 0) literals.add(literal);
+				}
 				
-				Integer literal = new Integer(token);
-				if(literal != 0) literals.add(literal);
+				Clause clause =  new Clause(literals);
+				clauses.add(clause);
+				
 			}
 			
-			Clause clause =  new Clause(literals);
-			clauses.add(clause);
 			
 		}
 		

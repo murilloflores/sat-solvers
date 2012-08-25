@@ -1,4 +1,5 @@
 package core;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -8,6 +9,17 @@ public class Clause {
 	
 	public Clause(List<Integer> literals) {
 		this.literals = literals;
+	}
+
+	public Clause(Clause clause) {
+		
+		List<Integer> clonedLiterals = new ArrayList<Integer>(clause.getLiterals().size());
+		for(Integer literal: clause.getLiterals()){
+			clonedLiterals.add(new Integer(literal));
+		}
+		
+		this.literals = clonedLiterals;
+		
 	}
 
 	public List<Integer> getLiterals() {
@@ -32,7 +44,7 @@ public class Clause {
 	
 	@Override
 	public String toString() {
-		return "Clause [literals=" + literals + "]";
+		return "Clause [literals=" + literals + "] "+this.hashCode()+"}";
 	}
 
 	@Override
