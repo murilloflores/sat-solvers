@@ -1,7 +1,9 @@
 package core;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DPLLSolver implements Solver {
 
@@ -15,6 +17,7 @@ public class DPLLSolver implements Solver {
 		Integer literal = selectLiteralForSpliting(clauses);
 		Integer complementaryLiteral = literal * -1;
 		
+		// BBO Heuristics can be applied here
 		if(solve(cloneAndAddClauseWithLiteral(clauses, literal)) == true) return true;
 		else return solve(cloneAndAddClauseWithLiteral(clauses, complementaryLiteral));
 		
@@ -52,7 +55,76 @@ public class DPLLSolver implements Solver {
 	private Integer selectLiteralForSpliting(List<Clause> clauses) {
 		
 		// no heuristics here
-		return clauses.get(0).getLiterals().get(0);
+		// return clauses.get(0).getLiterals().get(0);
+		
+		// MOMS - Max Ocurrences on the Minimun Lenght clauses
+		int shortestClausesLenght = calculateShortestClausesLenght(clauses);
+		
+		Map<Integer, Integer> countOcurrencesByLiteral = new HashMap<Integer, Integer>();
+		
+		for(Clause clause: clauses){
+			if(clause.getLiterals().size() == shortestClausesLenght){
+				List<Integer> literals = clause.getLiterals();
+				for(Integer literal:literals){
+					
+					if(!countOcurrencesByLiteral.containsKey(literal)){
+						countOcurrencesByLiteral.put(literal, 0);
+					}
+					
+					Integer oldValue = countOcurrencesByLiteral.get(literal);
+					countOcurrencesByLiteral.put(literal, oldValue + 1);
+					
+				}
+			}
+		}
+		
+		Integer maxOcurrences = null;
+		Integer maxFrequencyLiteral = null;
+		
+		for(Map.Entry<Integer, Integer> entry: countOcurrencesByLiteral.entrySet()){
+			
+			Integer literal = entry.getKey();
+			Integer literalOcurrences = entry.getValue();
+			
+			Integer complementaryLiteral = literal * -1;
+			Integer complementaryLiteralOcurrences = (countOcurrencesByLiteral.containsKey(complementaryLiteral)) ? countOcurrencesByLiteral.get(complementaryLiteral) : 0;
+			
+			Integer totalOcurrences = literalOcurrences + complementaryLiteralOcurrences;
+			
+			if(maxOcurrences == null){
+				maxOcurrences = totalOcurrences;
+				maxFrequencyLiteral = literal; 
+				continue;
+			}
+			
+			if(totalOcurrences > maxOcurrences){
+				maxOcurrences = totalOcurrences;
+				maxFrequencyLiteral = literal;
+			}
+			
+		}
+		
+		return maxFrequencyLiteral;
+		
+	}
+
+	private int calculateShortestClausesLenght(List<Clause> clauses) {
+		
+		Integer shortestClausesLenght = null;
+		
+		for(Clause clause: clauses){
+			
+			if(shortestClausesLenght == null && !clause.isEmpty() ){
+				shortestClausesLenght = clause.getLiterals().size();
+				continue;
+			}
+			
+			if(!clause.isEmpty() && clause.getLiterals().size() < shortestClausesLenght){
+				shortestClausesLenght = clause.getLiterals().size();
+			}
+		}
+		
+		return shortestClausesLenght;
 		
 	}
 
