@@ -1,10 +1,7 @@
 package core;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import parser.DimacsParser;
 
 public class DPLLSolver implements Solver {
 
@@ -75,9 +72,6 @@ public class DPLLSolver implements Solver {
 		
 		List<Integer> unitClausesLiterals = getUnitClausesLiterals(clauses);
 		while(!unitClausesLiterals.isEmpty()){
-//			System.out.println("WILL PROPAGATE");
-//			System.out.println("UNIT -> "+unitClauses);
-//			System.out.println("CLAUSES -> "+clauses);
 			propagate(unitClausesLiterals, clauses);
 			unitClausesLiterals = getUnitClausesLiterals(clauses);
 		}
@@ -99,17 +93,12 @@ public class DPLLSolver implements Solver {
 	private void propagate(List<Integer> unitClausesLiterals, List<Clause> clauses) {
 		
 		for(Integer literal: unitClausesLiterals){
-//			System.out.println("Propagating for "+unitClause);
 			propagateForUnitClause(literal, clauses);
 		}
 		
 	}
 
 	private void propagateForUnitClause(Integer literal, List<Clause> clauses) {
-		
-//		if(unitClause.getLiterals().size() == 0){
-//			System.out.println("deu pau"+unitClause);
-//		}
 		
 		Integer complementaryLiteral = literal * -1;
 		
@@ -128,17 +117,6 @@ public class DPLLSolver implements Solver {
 			}
 			
 		}
-		
-	}
-
-	public static void main(String[] args) throws IOException {
-		
-		DimacsParser parser = new DimacsParser();
-//		List<Clause> clauses = parser.parse("/examples/unsatisfiable_by_up.cnf");
-		List<Clause> clauses = parser.parse("examples/satisfiable_by_up.cnf");
-		
-		DPLLSolver solver =  new DPLLSolver();
-		System.out.println(solver.solve(clauses));
 		
 	}
 
