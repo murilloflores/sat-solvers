@@ -1,7 +1,6 @@
  <pre>
  -----------------------------
-< I can't get no satisfaction >
- -----------------------------
+ I can't get no satisfaction 
         \   ^__^
          \  (oo)\_______
             (__)\       )\/\
