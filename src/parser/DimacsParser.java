@@ -6,7 +6,8 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 
-import core.Clause;
+import representation.Clause;
+
 
 
 public class DimacsParser implements Parser{

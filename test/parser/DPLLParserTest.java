@@ -7,12 +7,12 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
-import core.Clause;
-import core.DPLLSolver;
+import representation.Clause;
+import solvers.DPLLSolver;
+
 
 public class DPLLParserTest{
 
-	// /home/murillo/Dropbox/tcc/satlib/ai/hoos/Shortcuts/UF250.1065.100/uf250-01.cnf	
 	@Test
 	public void positiveSimpleTests_shouldReturnSatisfiable() throws IOException{
 		runtTest("examples/satisfiable_by_up.cnf", true);

@@ -3,7 +3,8 @@ package parser;
 import java.io.IOException;
 import java.util.List;
 
-import core.Clause;
+import representation.Clause;
+
 
 public interface Parser {
 
