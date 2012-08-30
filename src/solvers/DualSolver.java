@@ -10,68 +10,91 @@ import java.util.Set;
 
 import parser.DimacsParser;
 import representation.Clause;
+import representation.Quantum;
+import representation.QuantumTable;
+import representation.SearchState;
 
 public class DualSolver implements Solver {
 
+	private List<Clause> cnfClauses;
+	
 	@Override
-	public boolean solve(List<Clause> cnfClauses) {
+	public boolean solve(List<Clause> clauses) {
 		
-		final Map<Integer, List<Integer>> quantumTable = buildQuantumTable(cnfClauses);
+		this.cnfClauses = clauses;
 		
-		List<Clause> openedDnfClauses = calculateInitialState(cnfClauses, quantumTable);
+		QuantumTable quantumTable = buildQuantumTable();
 		
-		while(!openedDnfClauses.isEmpty()){
+		List<SearchState> openedStates = calculateInitialStates(quantumTable);
+		List<SearchState> closedStates = new ArrayList<SearchState>();
 		
-			Clause currentState = getStateWithSmallestGap(cnfClauses, openedDnfClauses, quantumTable);
-			
-			if(isFinalState(currentState, cnfClauses, quantumTable)){
+		while(!openedStates.isEmpty()){
+		
+			SearchState currentState = getStateWithSmallestGap(openedStates);
+
+			if(isFinalState(currentState)){
 				return true;
 			}
 			
-			//do the magic
+			openedStates.remove(currentState);
+			closedStates.add(currentState);
+			
+			System.out.println("Current "+ currentState);
+			System.out.println("OPENED " +openedStates);
+			System.out.println("CLOSED " +closedStates);
+			
+			List<SearchState> neighbors = calculateNehighBors(currentState);
+			
+			//do some checks?
+			
+			for(SearchState state: neighbors){
+				openedStates.add(state);
+			}
+			
 			
 		}
 
 		return false;
 	}
 	
-	private boolean isFinalState(Clause clause, List<Clause> cnfClauses, Map<Integer, List<Integer>> quantumTable) {
-		List<Integer> gap = calculateGap(clause, cnfClauses, quantumTable);
-		return gap.isEmpty();
+	private List<SearchState> calculateNehighBors(SearchState currentState) {
+		// FIXME Sucessors function implemented from pg 25
+		return null;
 	}
 
-	private Clause getStateWithSmallestGap(List<Clause> cnfClauses, List<Clause> openedClauses, Map<Integer, List<Integer>> quantumTable) {
+	private boolean isFinalState(SearchState state) {
+		return calculateGap(state).isEmpty();
+	}
+
+	private SearchState getStateWithSmallestGap(List<SearchState> openedStates) {
 		
-		int betterClauseIndex = 0;
-		List<Integer> minorGap = calculateGap(openedClauses.get(0), cnfClauses, quantumTable);
+		int betterStateIndex = 0;
+		List<Integer> minorGap = calculateGap(openedStates.get(0));
 		
-		for(int i=1; i < openedClauses.size(); i++){
+		for(int i=1; i < openedStates.size(); i++){
 			
-			Clause clause = openedClauses.get(i);
-			List<Integer> gap = calculateGap(clause, cnfClauses, quantumTable);
+			SearchState state = openedStates.get(i);
+			List<Integer> gap = calculateGap(state);
 			
 			if(gap.size() < minorGap.size()){
 				minorGap = gap;
-				betterClauseIndex = i;
+				betterStateIndex = i;
 			}
 			
 		}
 		
-		return openedClauses.get(betterClauseIndex);
+		return openedStates.get(betterStateIndex);
 		
 	}
 
-	private List<Integer> calculateGap(Clause clause, List<Clause> cnfClauses, Map<Integer, List<Integer>> quantumTable) {
+	private List<Integer> calculateGap(SearchState searchState) {
 
 		Set<Integer> coveredClauses = new HashSet<Integer>();
-		List<Integer> literals = clause.getLiterals();
-		for(Integer literal: literals){
-			
-			List<Integer> coordinates = quantumTable.get(literal);
-			for(Integer coordinate: coordinates){
+		
+		for(Quantum quantum: searchState.getQuantums()){
+			for(Integer coordinate: quantum.getCoordinates()){
 				coveredClauses.add(coordinate);
 			}
-			
 		}
 		
 		List<Integer> gap = new ArrayList<Integer>();
@@ -85,28 +108,26 @@ public class DualSolver implements Solver {
 	
 	}
 
-	private List<Clause> calculateInitialState(List<Clause> cnfClauses, Map<Integer, List<Integer>> quantumTable) {
+	private List<SearchState> calculateInitialStates(QuantumTable quantumTable) {
 	
-		Clause clause = getBestCnfClauseToStart(cnfClauses, quantumTable);
+		Clause clause = getBestCnfClauseToStart(quantumTable);
 		
-		List<Clause> initialState = new ArrayList<Clause>();
+		List<SearchState> initialState = new ArrayList<SearchState>();
 		
 		List<Integer> literals = clause.getLiterals();
 		for(Integer literal: literals){
 			
-			ArrayList<Integer> clauseLiterals = new ArrayList<Integer>();
-			clauseLiterals.add(literal);
+			SearchState state = new SearchState();
+			state.addQuantum(quantumTable.getQuantum(literal));
 			
-			Clause initialStateClause = new Clause(clauseLiterals);
-
-			initialState.add(initialStateClause);
+			initialState.add(state);
 		}
 		
 		
 		return initialState;
 	}
 
-	private Clause getBestCnfClauseToStart(List<Clause> cnfClauses, Map<Integer, List<Integer>> quantumTable) {
+	private Clause getBestCnfClauseToStart(QuantumTable quantumTable) {
 
 		//Trying heuristic to determine the first clause to be used, i.e. the initial state (pg 25)
 		
@@ -118,8 +139,9 @@ public class DualSolver implements Solver {
 			Clause clause = cnfClauses.get(i);
 			List<Integer> literals = clause.getLiterals();
 			for(Integer literal: literals){
-				List<Integer> coordinates = quantumTable.get(literal);
-				for(Integer coordinate: coordinates){
+				Quantum quantum = quantumTable.getQuantum(literal);
+				
+				for(Integer coordinate: quantum.getCoordinates()){
 					coverage.add(coordinate);
 				}
 			}
@@ -140,31 +162,24 @@ public class DualSolver implements Solver {
 		return cnfClauses.get(bestClauseIndex);
 	}
 
-	private Map<Integer, List<Integer>> buildQuantumTable(List<Clause> clauses){
+	private QuantumTable buildQuantumTable(){
 		
-		//TODO Can be done in a better way
+		QuantumTable table = new QuantumTable();
 		
-		Map<Integer, List<Integer>> quantumTable = new HashMap<Integer, List<Integer>>();
-		
-		for(int i=0;i<clauses.size();i++){
+		for(int i=0;i<cnfClauses.size();i++){
 			
-			Clause clause = clauses.get(i);
+			Clause clause = cnfClauses.get(i);
 			
 			List<Integer> literals = clause.getLiterals();
 			for(Integer literal:literals){
-				
-				if(!quantumTable.containsKey(literal)){
-					quantumTable.put(literal, new ArrayList<Integer>());
-				}
-				
-				List<Integer> coordinates = quantumTable.get(literal);
-				coordinates.add(i);
+
+				table.addCoordinate(literal, i);
 				
 			}
 			
 		}
 		
-		return quantumTable;
+		return table;
 		
 	}
 	
