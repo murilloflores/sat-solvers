@@ -44,7 +44,7 @@ public class Clause {
 	
 	@Override
 	public String toString() {
-		return "Clause [literals=" + literals + "] "+this.hashCode()+"}";
+		return "Clause [literals=" + literals + "] }";
 	}
 
 	@Override
