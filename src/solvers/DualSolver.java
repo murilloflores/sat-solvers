@@ -25,7 +25,9 @@ public class DualSolver implements Solver {
 		
 		QuantumTable quantumTable = buildQuantumTable();
 		
-		List<SearchState> openedStates = calculateInitialStates(quantumTable);
+		List<SearchState> openedStates = calculateInitialOpenedStates(quantumTable);
+		System.out.println(openedStates);
+		System.exit(0);
 		List<SearchState> closedStates = new ArrayList<SearchState>();
 		
 		while(!openedStates.isEmpty()){
@@ -43,7 +45,7 @@ public class DualSolver implements Solver {
 			System.out.println("OPENED " +openedStates);
 			System.out.println("CLOSED " +closedStates);
 			
-			List<SearchState> neighbors = calculateNehighBors(currentState);
+			List<SearchState> neighbors = calculateNehighBors(currentState, quantumTable);
 			
 			//do some checks?
 			
@@ -57,9 +59,51 @@ public class DualSolver implements Solver {
 		return false;
 	}
 	
-	private List<SearchState> calculateNehighBors(SearchState currentState) {
-		// FIXME Sucessors function implemented from pg 25
-		return null;
+	private List<SearchState> calculateNehighBors(SearchState currentState, QuantumTable quantumTable) {
+		// TODO Sucessors function implemented from pg 25
+		
+		List<SearchState> sucessors = new ArrayList<SearchState>();
+		
+		List<Quantum> possibleExtensions = determinePossibleExtensions(currentState, quantumTable);
+		sortQuantumsAccordingTOHeuristic(possibleExtensions);
+		
+		
+		return sucessors;
+	}
+
+	private List<Quantum> determinePossibleExtensions(SearchState currentState, QuantumTable quantumTable) {
+		
+		Set<Integer> literalsInTheClausesOfGap = getLiteralsFromGapOf(currentState);
+
+		List<Quantum> possibleExtensions = new ArrayList<Quantum>();
+		for(Integer literal: literalsInTheClausesOfGap){
+			possibleExtensions.add(quantumTable.getQuantum(literal));
+		}
+		
+		removeForbiddenQuantums(possibleExtensions, currentState);
+		
+		return possibleExtensions;
+	}
+
+	private void removeForbiddenQuantums(List<Quantum> possibleExtensions, SearchState currentState) {
+		
+		Set<Quantum> forbiddenQuantums = currentState.getForbiddenQuantums();
+		for(Quantum forbiddenQuantum: forbiddenQuantums){
+			possibleExtensions.remove(forbiddenQuantum);
+		}
+		
+	}
+
+	private Set<Integer> getLiteralsFromGapOf(SearchState currentState) {
+		List<Clause> gap = calculateGap(currentState);
+
+		Set<Integer> literalsInTheClausesOfGap = new HashSet<Integer>();
+		for(Clause clause: gap){
+			List<Integer> literals = clause.getLiterals();
+			literalsInTheClausesOfGap.addAll(literals);
+		}
+		
+		return literalsInTheClausesOfGap;
 	}
 
 	private boolean isFinalState(SearchState state) {
@@ -69,12 +113,12 @@ public class DualSolver implements Solver {
 	private SearchState getStateWithSmallestGap(List<SearchState> openedStates) {
 		
 		int betterStateIndex = 0;
-		List<Integer> minorGap = calculateGap(openedStates.get(0));
+		List<Clause> minorGap = calculateGap(openedStates.get(0));
 		
 		for(int i=1; i < openedStates.size(); i++){
 			
 			SearchState state = openedStates.get(i);
-			List<Integer> gap = calculateGap(state);
+			List<Clause> gap = calculateGap(state);
 			
 			if(gap.size() < minorGap.size()){
 				minorGap = gap;
@@ -87,7 +131,7 @@ public class DualSolver implements Solver {
 		
 	}
 
-	private List<Integer> calculateGap(SearchState searchState) {
+	private List<Clause> calculateGap(SearchState searchState) {
 
 		Set<Integer> coveredClauses = new HashSet<Integer>();
 		
@@ -97,10 +141,10 @@ public class DualSolver implements Solver {
 			}
 		}
 		
-		List<Integer> gap = new ArrayList<Integer>();
+		List<Clause> gap = new ArrayList<Clause>();
 		for(int i=0; i< cnfClauses.size(); i++){
 			if(!coveredClauses.contains(i)){
-				gap.add(i);
+				gap.add(cnfClauses.get(i));
 			}
 		}
 		
@@ -108,23 +152,39 @@ public class DualSolver implements Solver {
 	
 	}
 
-	private List<SearchState> calculateInitialStates(QuantumTable quantumTable) {
+	private List<SearchState> calculateInitialOpenedStates(QuantumTable quantumTable) {
 	
 		Clause clause = getBestCnfClauseToStart(quantumTable);
 		
-		List<SearchState> initialState = new ArrayList<SearchState>();
-		
+		List<Quantum> quantumsOfClause = new ArrayList<Quantum>();
 		List<Integer> literals = clause.getLiterals();
 		for(Integer literal: literals){
-			
-			SearchState state = new SearchState();
-			state.addQuantum(quantumTable.getQuantum(literal));
-			
-			initialState.add(state);
+			quantumsOfClause.add(quantumTable.getQuantum(literal));
 		}
 		
+		quantumsOfClause = sortQuantumsAccordingTOHeuristic(quantumsOfClause);
 		
-		return initialState;
+		List<SearchState> initialOpenedStates = new ArrayList<SearchState>();
+		
+		for(int i=0; i<quantumsOfClause.size(); i++){
+			SearchState state = new SearchState();
+			state.addQuantum(quantumsOfClause.get(i));
+			
+			//TODO Im sure it can be done in a better way
+			for(int j=i-1; j>=0; j--){
+				state.addForbiddenQuantum(quantumsOfClause.get(j));
+			}
+			
+			initialOpenedStates.add(state);
+		}
+		
+		return initialOpenedStates;
+		
+	}
+
+	private List<Quantum> sortQuantumsAccordingTOHeuristic(List<Quantum> quantumsOfClause) {
+		// TODO Implement the heuristic pg 22
+		return quantumsOfClause;
 	}
 
 	private Clause getBestCnfClauseToStart(QuantumTable quantumTable) {
