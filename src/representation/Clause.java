@@ -30,8 +30,8 @@ public class Clause {
 		return this.literals.contains(literal);
 	}
 
-	public void removeLiteral(Integer complementaryLiteral) {
-		this.literals.remove(complementaryLiteral);
+	public void removeLiteral(Integer literal) {
+		this.literals.remove(literal);
 	}
 	
 	public boolean isUnit() {

@@ -8,6 +8,24 @@ public class SearchState {
 	private Set<Quantum> quantums;
 	private Set<Quantum> forbiddenQuantums;
 	
+	public SearchState(SearchState searchState){
+		
+		Set<Quantum> clonedQuantums = new HashSet<Quantum>();
+		for(Quantum quantum:searchState.getQuantums()){
+			clonedQuantums.add(new Quantum(quantum));
+		}
+		
+		this.quantums = clonedQuantums;
+		
+		Set<Quantum> clonedForbiddenQuantums = new HashSet<Quantum>();
+		for(Quantum quantum: searchState.getForbiddenQuantums()){
+			clonedForbiddenQuantums.add(new Quantum(quantum));
+		}
+		
+		this.forbiddenQuantums = clonedForbiddenQuantums;
+
+	}
+	
 	public SearchState(){
 		this.quantums = new HashSet<Quantum>();
 		this.forbiddenQuantums = new HashSet<Quantum>();

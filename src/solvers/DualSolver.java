@@ -2,6 +2,7 @@ package solvers;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -64,11 +65,79 @@ public class DualSolver implements Solver {
 		
 		List<SearchState> sucessors = new ArrayList<SearchState>();
 		
+		//step 1
 		List<Quantum> possibleExtensions = determinePossibleExtensions(currentState, quantumTable);
+		
+		//step 2
 		sortQuantumsAccordingTOHeuristic(possibleExtensions);
 		
+		//step 3
+		List<Clause> gapConditions = gapConditions(currentState, quantumTable);
+		for(Clause clause: gapConditions){
+			if(!intersects(clause, possibleExtensions)){
+				return new ArrayList<SearchState>();
+			}
+		}
+		
+		//step 4
+		for(Quantum quantum: possibleExtensions){
+			
+			SearchState possibleNextState = new SearchState(currentState);
+			possibleNextState.addQuantum(quantum);
+			
+			//almost there my friend
+			
+		}
 		
 		return sucessors;
+	}
+
+	private List<Clause> gapConditions(SearchState state,QuantumTable quantumTable){
+		
+		List<Clause> gapConditions = new ArrayList<Clause>();
+		
+		Set<Quantum> mirrorQuantums = calculateMirror(state.getQuantums(), quantumTable); 
+		List<Clause> gap = calculateGap(state);
+		
+		for(Clause clause: gap){
+			if(!intersects(clause, mirrorQuantums)) continue;
+			
+			Clause clone = new Clause(clause);
+			removeLiteralsOfQuantumsFromClause(mirrorQuantums, clone);
+			gapConditions.add(clone);
+			
+		}
+		
+		return gapConditions;
+	}
+	
+	private void removeLiteralsOfQuantumsFromClause(Set<Quantum> mirrorQuantums, Clause clause) {
+		for(Quantum quantum: mirrorQuantums){
+			clause.removeLiteral(quantum.getLiteral());
+		}
+	}
+
+	private boolean intersects(Clause clause, Collection<Quantum> quantums) {
+		
+		for(Integer literal: clause.getLiterals()){
+			for(Quantum quantum: quantums){
+				if (quantum.getLiteral().equals(literal)) return true;
+			}
+		}
+		
+		return false;
+	}
+
+	private Set<Quantum> calculateMirror(Set<Quantum> quantums, QuantumTable quantumTable) {
+		
+		Set<Quantum> mirror = new HashSet<Quantum>();
+		for(Quantum quantum: quantums){
+			Integer mirrorLiteral = quantum.getLiteral() * -1;
+			mirror.add(quantumTable.getQuantum(mirrorLiteral));
+		}
+		
+		return mirror;
+		
 	}
 
 	private List<Quantum> determinePossibleExtensions(SearchState currentState, QuantumTable quantumTable) {

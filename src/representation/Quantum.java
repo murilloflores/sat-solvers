@@ -9,6 +9,18 @@ public class Quantum {
 	private Integer literal;
 	private Set<Integer> coordinates;
 	
+	public Quantum(Quantum quantum){
+		this.literal = new Integer(quantum.getLiteral());
+		
+		Set<Integer> clonedCoordinates = new HashSet<Integer>();
+		for(Integer coordinate: quantum.getCoordinates()){
+			clonedCoordinates.add(new Integer(coordinate));
+		}
+		
+		this.coordinates = clonedCoordinates;
+		
+	}
+	
 	public Quantum(Integer literal){
 		this.literal = literal;
 		this.coordinates = new HashSet<Integer>();
