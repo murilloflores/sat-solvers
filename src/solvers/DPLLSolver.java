@@ -1,9 +1,12 @@
 package solvers;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import parser.DimacsParser;
 
 import representation.Clause;
 
@@ -193,6 +196,17 @@ public class DPLLSolver implements Solver {
 			}
 			
 		}
+		
+	}
+	
+	public static void main(String[] args) throws IOException {
+		
+		DimacsParser parser = new DimacsParser();
+		List<Clause> clauses = parser.parse("examples/uuf75-024.cnf");
+		
+		Solver solver =  new DPLLSolver();
+		
+		System.out.println(solver.solve(clauses));
 		
 	}
 

@@ -27,8 +27,6 @@ public class DualSolver implements Solver {
 		QuantumTable quantumTable = buildQuantumTable();
 		
 		List<SearchState> openedStates = calculateInitialOpenedStates(quantumTable);
-		System.out.println(openedStates);
-		System.exit(0);
 		List<SearchState> closedStates = new ArrayList<SearchState>();
 		
 		while(!openedStates.isEmpty()){
@@ -36,15 +34,11 @@ public class DualSolver implements Solver {
 			SearchState currentState = getStateWithSmallestGap(openedStates);
 
 			if(isFinalState(currentState)){
-				return true;
+				System.out.println(currentState);
 			}
 			
 			openedStates.remove(currentState);
 			closedStates.add(currentState);
-			
-			System.out.println("Current "+ currentState);
-			System.out.println("OPENED " +openedStates);
-			System.out.println("CLOSED " +closedStates);
 			
 			List<SearchState> neighbors = calculateNehighBors(currentState, quantumTable);
 			
@@ -85,11 +79,78 @@ public class DualSolver implements Solver {
 			SearchState possibleNextState = new SearchState(currentState);
 			possibleNextState.addQuantum(quantum);
 			
-			//almost there my friend
+			//TODO Refactor this code to check new condition just if the first matches
+			boolean exclusiveCoordinateAreCompatible = isExclusiveCoordinateCompatible(currentState, quantum);
+			boolean newRestrictionsAreNotContradictory = isNewRestrictionsContradictory(possibleNextState, quantumTable);
+			boolean newRestrictionsAreCompatibleWithForbiddenList = isNewRestrictionsCompatibleWithForbiddenList(possibleNextState, quantumTable, currentState);
+		
+			if(exclusiveCoordinateAreCompatible && newRestrictionsAreNotContradictory && newRestrictionsAreCompatibleWithForbiddenList){
+				sucessors.add(possibleNextState);
+			}
+			
 			
 		}
 		
 		return sucessors;
+	}
+
+	private boolean isNewRestrictionsCompatibleWithForbiddenList(SearchState possibleNextState, QuantumTable quantumTable, SearchState currentState) {
+		
+		Set<Quantum> forbiddenQuantums = currentState.getForbiddenQuantums();
+		List<Clause> gapConditions = gapConditions(possibleNextState, quantumTable);
+		for(Clause clause: gapConditions){
+			if(areAllLiteralsInQuantums(clause.getLiterals(), forbiddenQuantums)){
+				return false;
+			}
+		}
+		
+		return true;
+		
+	}
+
+	private boolean areAllLiteralsInQuantums(List<Integer> literals, Set<Quantum> forbiddenQuantums) {
+		
+		for(Integer literal:literals){
+			if(!containsLiteral(forbiddenQuantums, literal)){
+				return false;
+			}
+		}
+		
+		return true;
+	}
+
+	private boolean containsLiteral(Set<Quantum> forbiddenQuantums,	Integer literal) {
+		
+		for(Quantum quantum: forbiddenQuantums){
+			if(quantum.getLiteral().equals(literal)) return true;
+		}
+		return false;
+		
+	}
+
+	private boolean isNewRestrictionsContradictory(SearchState possibleNextState, QuantumTable quantumTable) {
+		List<Clause> gapConditions = gapConditions(possibleNextState, quantumTable);
+		for(Clause clause: gapConditions){
+			if(clause.isEmpty()) return false;
+		}
+		
+		return true;
+	}
+
+	private boolean isExclusiveCoordinateCompatible(SearchState currentState, Quantum quantumBeingAdded) {
+		
+		Set<Integer> quantumBeingAddedCoordinates = quantumBeingAdded.getCoordinates();
+		
+		for(Quantum quantum: currentState.getQuantums()){
+			
+			Set<Integer> coordinates = quantum.getCoordinates();
+			if(quantumBeingAddedCoordinates.containsAll(coordinates)){
+				return false;
+			}
+			
+		}
+		
+		return true;
 	}
 
 	private List<Clause> gapConditions(SearchState state,QuantumTable quantumTable){
@@ -151,7 +212,19 @@ public class DualSolver implements Solver {
 		
 		removeForbiddenQuantums(possibleExtensions, currentState);
 		
+		//TODO As I dont know how the algorithm evict contradictions, im introducing my own method :)
+		removeContradictoryQuantums(possibleExtensions, currentState, quantumTable);
+		
 		return possibleExtensions;
+	}
+
+	private void removeContradictoryQuantums(List<Quantum> possibleExtensions, SearchState currentState, QuantumTable quantumTable) {
+
+		for(Quantum quantum:currentState.getQuantums()){
+			Quantum mirrorQuantum = quantumTable.getQuantum(quantum.getLiteral() * -1);
+			possibleExtensions.remove(mirrorQuantum);
+		}
+		
 	}
 
 	private void removeForbiddenQuantums(List<Quantum> possibleExtensions, SearchState currentState) {
@@ -312,6 +385,23 @@ public class DualSolver implements Solver {
 		
 	}
 	
+	// -------------------------------------------------------------
+	// AUXILIAR METHOD ON DEBUGGING
+	// -------------------------------------------------------------
+	
+	private void checkContradition(SearchState possibleNextState, QuantumTable quantumTable) {
+
+		for(Quantum quantum:possibleNextState.getQuantums()){
+			Quantum mirrorQuantum = quantumTable.getQuantum(quantum.getLiteral() * -1);
+			if(possibleNextState.getQuantums().contains(mirrorQuantum)){
+				System.out.println("Contradiction!!!!!!");
+				System.out.println(possibleNextState);
+				System.exit(-1);
+			}
+		}
+		
+	}
+	
 	public static void main(String[] args) throws IOException {
 	
 		DimacsParser parser = new DimacsParser();
@@ -319,7 +409,7 @@ public class DualSolver implements Solver {
 		
 		Solver solver =  new DualSolver();
 		
-		solver.solve(clauses);
+		System.out.println(solver.solve(clauses));
 		
 	}
 	
