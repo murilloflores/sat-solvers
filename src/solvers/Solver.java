@@ -7,6 +7,8 @@ import representation.Clause;
 
 public interface Solver {
 
-	boolean solve(List<Clause> clauses);
+	boolean isSatisfiable(List<Clause> clauses);
+	
+	List<Clause> toMinimalDualClauses(List<Clause> clauses);
 	
 }

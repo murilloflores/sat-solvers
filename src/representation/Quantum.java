@@ -40,8 +40,7 @@ public class Quantum {
 
 	@Override
 	public String toString() {
-		return "Quantum [literal=" + literal + ", coordinates=" + coordinates
-				+ "]";
+		return "Quantum [literal=" + literal + "]";
 	}
 
 	@Override

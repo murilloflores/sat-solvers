@@ -15,7 +15,7 @@ import representation.Clause;
 public class DPLLSolver implements Solver {
 
 	@Override
-	public boolean solve(List<Clause> clauses) {
+	public boolean isSatisfiable(List<Clause> clauses) {
 		
 		unitPropagation(clauses);
 		if(clauses.isEmpty()) return true;
@@ -25,11 +25,17 @@ public class DPLLSolver implements Solver {
 		Integer complementaryLiteral = literal * -1;
 		
 		// BBO Heuristics can be applied here
-		if(solve(cloneAndAddClauseWithLiteral(clauses, literal)) == true) return true;
-		else return solve(cloneAndAddClauseWithLiteral(clauses, complementaryLiteral));
+		if(isSatisfiable(cloneAndAddClauseWithLiteral(clauses, literal)) == true) return true;
+		else return isSatisfiable(cloneAndAddClauseWithLiteral(clauses, complementaryLiteral));
 		
 	}
 
+	@Override
+	public List<Clause> toMinimalDualClauses(List<Clause> clauses) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
 	private List<Clause> cloneAndAddClauseWithLiteral(List<Clause> clauses, Integer literal) {
 		
 		Clause clause = createClauseFromLiteral(literal);
@@ -206,7 +212,7 @@ public class DPLLSolver implements Solver {
 		
 		Solver solver =  new DPLLSolver();
 		
-		System.out.println(solver.solve(clauses));
+		System.out.println(solver.isSatisfiable(clauses));
 		
 	}
 

@@ -31,7 +31,7 @@ public class DimacsParser implements Parser{
 			if (line.startsWith(COMMENT_PREFIX)) continue;
 			
 			if (line.startsWith(PROBLEM_LINE_PREFIX)) {
-				checkCNFFormat(line);
+				checkValidFormat(line);
 				expectedNumberOfClauses = getNumberOfClauses(line);
 				passedByProblemLine = true;
 				clauses = new ArrayList<Clause>(expectedNumberOfClauses);
@@ -67,9 +67,9 @@ public class DimacsParser implements Parser{
 		return line.split(" +")[position];
 	}
 	
-	private void checkCNFFormat(String line) {
+	private void checkValidFormat(String line) {
 		String format = getPiece(line, 1);
-		if(!"cnf".equalsIgnoreCase(format)){
+		if(!"cnf".equalsIgnoreCase(format) && !"dnf".equalsIgnoreCase(format)){
 			throw new RuntimeException("Unexpected clauses format "+format);
 		}
 	}

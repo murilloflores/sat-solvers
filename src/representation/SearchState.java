@@ -41,8 +41,7 @@ public class SearchState {
 
 	@Override
 	public String toString() {
-		return "SearchState [quantums=" + quantums + ", forbiddenQuanta="
-				+ forbiddenQuantums + "]";
+		return "SearchState [quantums=" + quantums  + "]";
 	}
 
 	@Override

@@ -19,8 +19,31 @@ public class DualSolver implements Solver {
 
 	private List<Clause> cnfClauses;
 	
+	public boolean isSatisfiable(List<Clause> clauses){
+		List<SearchState> finalStates = calculateFinalStates(cnfClauses, true);
+		return !finalStates.isEmpty();
+	}
+	
 	@Override
-	public boolean solve(List<Clause> clauses) {
+	public List<Clause> toMinimalDualClauses(List<Clause> clauses) {
+		List<Clause> minimalDualClauses = new ArrayList<Clause>();
+
+		List<SearchState> finalStates = calculateFinalStates(clauses, false);
+		for(SearchState state : finalStates){
+			List<Integer> literals = new ArrayList<Integer>();
+			Set<Quantum> quantums = state.getQuantums();
+			for(Quantum quantum: quantums){
+				literals.add(quantum.getLiteral());
+			}
+			
+			minimalDualClauses.add(new Clause(literals));
+		}
+		
+		return minimalDualClauses;
+		
+	}
+	
+	public List<SearchState> calculateFinalStates(List<Clause> clauses, boolean returnFirst) {
 		
 		this.cnfClauses = clauses;
 		
@@ -28,13 +51,19 @@ public class DualSolver implements Solver {
 		
 		List<SearchState> openedStates = calculateInitialOpenedStates(quantumTable);
 		List<SearchState> closedStates = new ArrayList<SearchState>();
+		List<SearchState> finalStates = new ArrayList<SearchState>();
 		
 		while(!openedStates.isEmpty()){
 		
 			SearchState currentState = getStateWithSmallestGap(openedStates);
 
 			if(isFinalState(currentState)){
-				System.out.println(currentState);
+				openedStates.remove(currentState);
+				finalStates.add(currentState);
+				if(returnFirst){
+					return finalStates;
+				}
+				continue;
 			}
 			
 			openedStates.remove(currentState);
@@ -51,8 +80,11 @@ public class DualSolver implements Solver {
 			
 		}
 
-		return false;
+		return finalStates;
 	}
+	
+	
+	
 	
 	private List<SearchState> calculateNehighBors(SearchState currentState, QuantumTable quantumTable) {
 		// TODO Sucessors function implemented from pg 25
@@ -143,7 +175,7 @@ public class DualSolver implements Solver {
 		
 		for(Quantum quantum: currentState.getQuantums()){
 			
-			Set<Integer> coordinates = quantum.getCoordinates();
+			Set<Integer> coordinates = getExclusiveCoordinatesFor(currentState, quantum);
 			if(quantumBeingAddedCoordinates.containsAll(coordinates)){
 				return false;
 			}
@@ -151,6 +183,19 @@ public class DualSolver implements Solver {
 		}
 		
 		return true;
+	}
+
+
+	private Set<Integer> getExclusiveCoordinatesFor(SearchState currentState, Quantum quantum) {
+		Quantum copy = new Quantum(quantum);
+		Set<Integer> coordinates =  copy.getCoordinates();
+		for(Quantum currentStateQuantum: currentState.getQuantums()){
+			if(currentStateQuantum.equals(quantum)){
+				continue;
+			}
+			coordinates.removeAll(currentStateQuantum.getCoordinates());
+		}
+		return coordinates;
 	}
 
 	private List<Clause> gapConditions(SearchState state,QuantumTable quantumTable){
@@ -402,16 +447,51 @@ public class DualSolver implements Solver {
 		
 	}
 	
+	// -------------------------------------------------------------
+	// END OF AUXILIAR METHOD ON DEBUGGING
+	// -------------------------------------------------------------
+	
 	public static void main(String[] args) throws IOException {
 	
 		DimacsParser parser = new DimacsParser();
-		List<Clause> clauses = parser.parse("examples/dual_example_modificated.cnf");
 		
-		Solver solver =  new DualSolver();
+		List<Clause> clauses = parser.parse("examples/dual_example.cnf");
+		List<Clause> expectedAnser = parser.parse("examples/dual_example.dnf");
 		
-		System.out.println(solver.solve(clauses));
+		DualSolver solver =  new DualSolver();
+		List<Clause> minimalDualClauses = solver.toMinimalDualClauses(clauses);
+		
+		compararSolucaoResposta(expectedAnser, minimalDualClauses);		
 		
 	}
-	
-	
+
+	private static void compararSolucaoResposta(List<Clause> expectedAnser, List<Clause> minimalDualClauses) {
+		
+		for(Clause clause: minimalDualClauses){
+			
+			if(isIn(clause, expectedAnser)){
+				System.out.println("Y + " + clause);
+			}else{
+				System.out.println("N + " + clause);
+			}
+				
+			
+		}
+		
+	}
+
+	private static boolean isIn(Clause clause, List<Clause> expectedAnser) {
+		
+		for(Clause expected: expectedAnser){
+			
+			List<Integer> expecLiterals = expected.getLiterals();
+			List<Integer> literals = clause.getLiterals();
+			
+			if(expecLiterals.containsAll(literals) && expecLiterals.size() == literals.size()){
+				return true;
+			}
+		}
+		return false;
+	}
+
 }
