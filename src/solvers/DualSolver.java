@@ -105,6 +105,7 @@ public class DualSolver implements Solver {
 			}
 		}
 		
+		List<Quantum> usedQuantums = new ArrayList<Quantum>();
 		//step 4
 		for(Quantum quantum: possibleExtensions){
 			
@@ -117,6 +118,10 @@ public class DualSolver implements Solver {
 			boolean newRestrictionsAreCompatibleWithForbiddenList = isNewRestrictionsCompatibleWithForbiddenList(possibleNextState, quantumTable, currentState);
 		
 			if(exclusiveCoordinateAreCompatible && newRestrictionsAreNotContradictory && newRestrictionsAreCompatibleWithForbiddenList){
+				for(Quantum forbiddenQuantum:usedQuantums){
+					possibleNextState.addForbiddenQuantum(forbiddenQuantum);
+				}
+				usedQuantums.add(quantum);
 				sucessors.add(possibleNextState);
 			}
 			
