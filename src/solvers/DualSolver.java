@@ -20,7 +20,7 @@ public class DualSolver implements Solver {
 	private List<Clause> cnfClauses;
 	
 	public boolean isSatisfiable(List<Clause> clauses){
-		List<SearchState> finalStates = calculateFinalStates(cnfClauses, true);
+		List<SearchState> finalStates = calculateFinalStates(clauses, true);
 		return !finalStates.isEmpty();
 	}
 	
@@ -239,7 +239,10 @@ public class DualSolver implements Solver {
 		Set<Quantum> mirror = new HashSet<Quantum>();
 		for(Quantum quantum: quantums){
 			Integer mirrorLiteral = quantum.getLiteral() * -1;
-			mirror.add(quantumTable.getQuantum(mirrorLiteral));
+			Quantum mirrorQuantum = quantumTable.getQuantum(mirrorLiteral);
+			if(mirrorQuantum != null){
+				mirror.add(mirrorQuantum);
+			}
 		}
 		
 		return mirror;
@@ -455,13 +458,14 @@ public class DualSolver implements Solver {
 	
 		DimacsParser parser = new DimacsParser();
 		
-		List<Clause> clauses = parser.parse("examples/dual_example.cnf");
-		List<Clause> expectedAnser = parser.parse("examples/dual_example.dnf");
+		List<Clause> clauses = parser.parse("examples/t3.cnf");
+		List<Clause> expectedAnswer = parser.parse("examples/t3.dnf");
 		
 		DualSolver solver =  new DualSolver();
+//		System.out.println(solver.isSatisfiable(clauses));
 		List<Clause> minimalDualClauses = solver.toMinimalDualClauses(clauses);
 		
-		compararSolucaoResposta(expectedAnser, minimalDualClauses);		
+		compararSolucaoResposta(expectedAnswer, minimalDualClauses);		
 		
 	}
 
