@@ -3,6 +3,7 @@ package solvers;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -32,10 +33,11 @@ public class DPLLSolver implements Solver {
 		
 	}
 
+	@SuppressWarnings("unused")
 	private List<Integer> firstResultDpll(List<Clause> clauses){
 		
-		List<Integer> unitPropagatedLiterals = unitPropagation(clauses);
-		if(clauses.isEmpty()) return unitPropagatedLiterals;
+		Set<Integer> unitPropagatedLiterals = unitPropagation(clauses);
+		if(clauses.isEmpty()) return new ArrayList<Integer>(unitPropagatedLiterals);
 		if(containsEmptyClauses(clauses)) return Collections.emptyList();
 		
 		Integer literal = selectLiteralForSpliting(clauses);
@@ -58,11 +60,11 @@ public class DPLLSolver implements Solver {
 		
 	}
 	
-	private Set<List<Integer>> allResultsDpll(List<Clause> clauses){
+	private Set<Set<Integer>> allResultsDpll(List<Clause> clauses, Integer first){
 		
-		Set<List<Integer>> resultList = new HashSet<List<Integer>>();
+		Set<Set<Integer>> resultList = new HashSet<Set<Integer>>();
 
-		List<Integer> unitPropagatedLiterals = unitPropagation(clauses);
+		Set<Integer> unitPropagatedLiterals = unitPropagation(clauses);
 		if(clauses.isEmpty()) {
 			resultList.add(unitPropagatedLiterals);
 			return resultList;
@@ -72,9 +74,20 @@ public class DPLLSolver implements Solver {
 		
 		
 		Set<Integer> remainingLiterals = remainingLiterals(clauses);
+		
+//		if(first){
+			for(int i=0; i<first; i++){
+				System.out.print("\t");
+			}
+			System.out.println("remaining --> "+remainingLiterals.size());
+//		}
+		
 		for(Integer literal: remainingLiterals){
-			Set<List<Integer>> results = allResultsDpll(cloneAndAddClauseWithLiteral(clauses, literal));
-			for(List<Integer> result: results){
+			Set<Set<Integer>> results = allResultsDpll(cloneAndAddClauseWithLiteral(clauses, literal), first+1);
+//			if(first){
+//				System.out.println("+1");
+//			}
+			for(Set<Integer> result: results){
 				result.addAll(unitPropagatedLiterals);
 				resultList.addAll(results);
 			}
@@ -100,18 +113,21 @@ public class DPLLSolver implements Solver {
 	@Override
 	public List<Clause> toMinimalDualClauses(List<Clause> clauses) {
 		
-		Set<List<Integer>> results = allResultsDpll(clone(clauses));
+		List<Clause> minimalDualClause = new ArrayList<Clause>();
 		
-		for(List<Integer> result: results){
+		Set<Set<Integer>> results = allResultsDpll(clone(clauses), 0);
+		
+		for(Set<Integer> result: results){
 			if(isValidDualClause(result, clauses)){
-				System.out.println(result);
+				Clause clause = new Clause(new ArrayList<Integer>(result));
+				minimalDualClause.add(clause);
 			}
 		}
 		
-		return null;
+		return minimalDualClause;
 	}
 	
-	private boolean isValidDualClause(List<Integer> result, List<Clause> clauses) {
+	private boolean isValidDualClause(Set<Integer> result, List<Clause> clauses) {
 		
 		List<List<Integer>> literalCoordinates =  new ArrayList<List<Integer>>();
 		for(Integer literal: result){
@@ -274,9 +290,9 @@ public class DPLLSolver implements Solver {
 		return false;
 	}
 
-	private List<Integer> unitPropagation(List<Clause> clauses) {
+	private Set<Integer> unitPropagation(List<Clause> clauses) {
 		
-		List<Integer> unitClauseLiteralsAll = new ArrayList<Integer>();
+		Set<Integer> unitClauseLiteralsAll = new HashSet<Integer>();
 		
 		List<Integer> unitClausesLiterals = getUnitClausesLiterals(clauses);
 		while(!unitClausesLiterals.isEmpty()){
@@ -332,14 +348,14 @@ public class DPLLSolver implements Solver {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		
+		System.out.println(System.currentTimeMillis());
 		DimacsParser parser = new DimacsParser();
-		List<Clause> clauses = parser.parse("examples/dual_example.cnf");
+		List<Clause> clauses = parser.parse("/home/murillo/Desktop/uf20-0113.cnf");
 		
 		DPLLSolver solver =  new DPLLSolver();
 		
-		System.out.println(solver.toMinimalDualClauses(clauses));
-		
+		System.out.println(solver.toMinimalDualClauses(clauses).size());
+		System.out.println(System.currentTimeMillis());
 	}
 
 }
