@@ -99,10 +99,64 @@ public class DPLLSolver implements Solver {
 
 	@Override
 	public List<Clause> toMinimalDualClauses(List<Clause> clauses) {
-		// TODO Auto-generated method stub
+		
+		Set<List<Integer>> results = allResultsDpll(clone(clauses));
+		
+		for(List<Integer> result: results){
+			if(isValidDualClause(result, clauses)){
+				System.out.println(result);
+			}
+		}
+		
 		return null;
 	}
 	
+	private boolean isValidDualClause(List<Integer> result, List<Clause> clauses) {
+		
+		List<List<Integer>> literalCoordinates =  new ArrayList<List<Integer>>();
+		for(Integer literal: result){
+			List<Integer> coordinates = new ArrayList<Integer>();
+			for(int i=0; i< clauses.size(); i++){
+				Clause clause = clauses.get(i);
+				if(clause.containsLiteral(literal)){
+					coordinates.add(i);
+				}
+			}
+			
+			literalCoordinates.add(coordinates);
+		}
+		
+		Set<Integer> clausesCovered = new HashSet<Integer>();
+		for(List<Integer> coordinates: literalCoordinates){
+			clausesCovered.addAll(coordinates);
+		}
+		
+		if(clausesCovered.size() < clauses.size()){
+			// clauses not covered by result
+			return false;
+		}
+		
+		if(clausesCovered.size() > clauses.size()){
+			throw new RuntimeException("Things going reaally wrong here !!");
+		}
+		
+		for(int i=0; i<literalCoordinates.size(); i++){
+			List<Integer> exclusiveCoordinates = new ArrayList<Integer>(literalCoordinates.get(i));
+			for(int j=0; j<literalCoordinates.size(); j++){
+				if(j != i){
+					exclusiveCoordinates.removeAll(literalCoordinates.get(j));
+				}
+			}
+			if(exclusiveCoordinates.size() == 0){
+				//exclusive coordinates are fucked
+				return false;
+			}
+		}
+		
+		
+		return true;
+	}
+
 	private List<Clause> cloneAndAddClauseWithLiteral(List<Clause> clauses, Integer literal) {
 		
 		Clause clause = createClauseFromLiteral(literal);
@@ -284,7 +338,7 @@ public class DPLLSolver implements Solver {
 		
 		DPLLSolver solver =  new DPLLSolver();
 		
-		System.out.println(solver.allResultsDpll(clauses));
+		System.out.println(solver.toMinimalDualClauses(clauses));
 		
 	}
 
