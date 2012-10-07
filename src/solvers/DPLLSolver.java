@@ -2,12 +2,14 @@ package solvers;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import parser.DimacsParser;
-
 import representation.Clause;
 
 
@@ -28,6 +30,71 @@ public class DPLLSolver implements Solver {
 		if(isSatisfiable(cloneAndAddClauseWithLiteral(clauses, literal)) == true) return true;
 		else return isSatisfiable(cloneAndAddClauseWithLiteral(clauses, complementaryLiteral));
 		
+	}
+
+	private List<Integer> firstResultDpll(List<Clause> clauses){
+		
+		List<Integer> unitPropagatedLiterals = unitPropagation(clauses);
+		if(clauses.isEmpty()) return unitPropagatedLiterals;
+		if(containsEmptyClauses(clauses)) return Collections.emptyList();
+		
+		Integer literal = selectLiteralForSpliting(clauses);
+		Integer complementaryLiteral = literal * -1;
+		
+		// BBO Heuristics can be applied here
+		List<Integer> firstResultDpllWithLiteral = firstResultDpll(cloneAndAddClauseWithLiteral(clauses, literal));
+		if(!firstResultDpllWithLiteral.isEmpty()) {
+			firstResultDpllWithLiteral.addAll(unitPropagatedLiterals);
+			return firstResultDpllWithLiteral;
+		}
+		
+		List<Integer> firstResultDpllWithComplementaryLiteral = firstResultDpll(cloneAndAddClauseWithLiteral(clauses, complementaryLiteral));
+		if(!firstResultDpllWithComplementaryLiteral.isEmpty()){
+			firstResultDpllWithComplementaryLiteral.addAll(unitPropagatedLiterals);
+			return firstResultDpllWithComplementaryLiteral;
+		}
+		
+		return Collections.emptyList();
+		
+	}
+	
+	private Set<List<Integer>> allResultsDpll(List<Clause> clauses){
+		
+		Set<List<Integer>> resultList = new HashSet<List<Integer>>();
+
+		List<Integer> unitPropagatedLiterals = unitPropagation(clauses);
+		if(clauses.isEmpty()) {
+			resultList.add(unitPropagatedLiterals);
+			return resultList;
+		}
+		
+		if(containsEmptyClauses(clauses)) return Collections.emptySet();
+		
+		
+		Set<Integer> remainingLiterals = remainingLiterals(clauses);
+		for(Integer literal: remainingLiterals){
+			Set<List<Integer>> results = allResultsDpll(cloneAndAddClauseWithLiteral(clauses, literal));
+			for(List<Integer> result: results){
+				result.addAll(unitPropagatedLiterals);
+				resultList.addAll(results);
+			}
+		}
+		
+		return resultList;
+		
+	}
+	
+	private Set<Integer> remainingLiterals(List<Clause> clauses) {
+		
+		Set<Integer> remainingLiterals = new HashSet<Integer>();
+		for(Clause clause: clauses){
+			for(Integer literal: clause.getLiterals()){
+				remainingLiterals.add(literal);
+			}
+		}
+		
+		
+		return remainingLiterals;
 	}
 
 	@Override
@@ -153,13 +220,18 @@ public class DPLLSolver implements Solver {
 		return false;
 	}
 
-	private void unitPropagation(List<Clause> clauses) {
+	private List<Integer> unitPropagation(List<Clause> clauses) {
+		
+		List<Integer> unitClauseLiteralsAll = new ArrayList<Integer>();
 		
 		List<Integer> unitClausesLiterals = getUnitClausesLiterals(clauses);
 		while(!unitClausesLiterals.isEmpty()){
+			unitClauseLiteralsAll.addAll(unitClausesLiterals);
 			propagate(unitClausesLiterals, clauses);
 			unitClausesLiterals = getUnitClausesLiterals(clauses);
 		}
+		
+		return unitClauseLiteralsAll;
 		
 	}
 
@@ -208,11 +280,11 @@ public class DPLLSolver implements Solver {
 	public static void main(String[] args) throws IOException {
 		
 		DimacsParser parser = new DimacsParser();
-		List<Clause> clauses = parser.parse("examples/uuf75-024.cnf");
+		List<Clause> clauses = parser.parse("examples/dual_example.cnf");
 		
-		Solver solver =  new DPLLSolver();
+		DPLLSolver solver =  new DPLLSolver();
 		
-		System.out.println(solver.isSatisfiable(clauses));
+		System.out.println(solver.allResultsDpll(clauses));
 		
 	}
 
