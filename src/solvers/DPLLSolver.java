@@ -64,6 +64,7 @@ public class DPLLSolver implements Solver {
 		Set<Set<Integer>> resultList = new HashSet<Set<Integer>>();
 
 		Set<Integer> unitPropagatedLiterals = unitPropagation(clauses);
+		
 		if(clauses.isEmpty()) {
 			resultList.add(unitPropagatedLiterals);
 			return resultList;
@@ -71,11 +72,11 @@ public class DPLLSolver implements Solver {
 		
 		if(containsEmptyClauses(clauses)) return Collections.emptySet();
 		
-		
 		Set<Integer> remainingLiterals = remainingLiterals(clauses);
 		
-		for(Integer literal: remainingLiterals){
-			Set<Set<Integer>> results = allResultsDpll(cloneAndAddClauseWithLiteral(clauses, literal));
+		for(Integer remainingLiteral: remainingLiterals){
+			
+			Set<Set<Integer>> results = allResultsDpll(cloneAndAddClauseWithLiteral(clauses, remainingLiteral));
 			
 			for(Set<Integer> result: results){
 				result.addAll(unitPropagatedLiterals);
