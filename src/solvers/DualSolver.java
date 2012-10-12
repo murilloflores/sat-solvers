@@ -121,9 +121,10 @@ public class DualSolver implements Solver {
 				for(Quantum forbiddenQuantum:usedQuantums){
 					possibleNextState.addForbiddenQuantum(forbiddenQuantum);
 				}
-				usedQuantums.add(quantum);
 				sucessors.add(possibleNextState);
 			}
+			
+			usedQuantums.add(quantum);
 			
 			
 		}
@@ -463,14 +464,17 @@ public class DualSolver implements Solver {
 	
 		DimacsParser parser = new DimacsParser();
 		
-		List<Clause> clauses = parser.parse("examples/t3.cnf");
-		List<Clause> expectedAnswer = parser.parse("examples/t3.dnf");
+		List<Clause> clauses = parser.parse("/home/murillo/Desktop/uf20-0113.cnf");
+//		List<Clause> expectedAnswer = parser.parse("examples/t3.dnf");
 		
 		DualSolver solver =  new DualSolver();
 //		System.out.println(solver.isSatisfiable(clauses));
+		long begin = System.currentTimeMillis();
 		List<Clause> minimalDualClauses = solver.toMinimalDualClauses(clauses);
-		
-		compararSolucaoResposta(expectedAnswer, minimalDualClauses);		
+		System.out.println(minimalDualClauses);
+		long end = System.currentTimeMillis();
+		System.out.println("time: "+ (end-begin));
+//		compararSolucaoResposta(expectedAnswer, minimalDualClauses);		
 		
 	}
 
