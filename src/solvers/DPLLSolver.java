@@ -59,7 +59,7 @@ public class DPLLSolver implements Solver {
 		
 	}
 	
-	private Set<Set<Integer>> allResultsDpll(List<Clause> clauses, Integer first){
+	private Set<Set<Integer>> allResultsDpll(List<Clause> clauses){
 		
 		Set<Set<Integer>> resultList = new HashSet<Set<Integer>>();
 
@@ -74,22 +74,14 @@ public class DPLLSolver implements Solver {
 		
 		Set<Integer> remainingLiterals = remainingLiterals(clauses);
 		
-//		if(first){
-			for(int i=0; i<first; i++){
-				System.out.print("\t");
-			}
-			System.out.println("remaining --> "+remainingLiterals.size());
-//		}
-		
 		for(Integer literal: remainingLiterals){
-			Set<Set<Integer>> results = allResultsDpll(cloneAndAddClauseWithLiteral(clauses, literal), first+1);
-//			if(first){
-//				System.out.println("+1");
-//			}
+			Set<Set<Integer>> results = allResultsDpll(cloneAndAddClauseWithLiteral(clauses, literal));
+			
 			for(Set<Integer> result: results){
 				result.addAll(unitPropagatedLiterals);
-				resultList.addAll(results);
 			}
+			
+			resultList.addAll(results);
 		}
 		
 		return resultList;
@@ -114,7 +106,7 @@ public class DPLLSolver implements Solver {
 		
 		List<Clause> minimalDualClause = new ArrayList<Clause>();
 		
-		Set<Set<Integer>> results = allResultsDpll(clone(clauses), 0);
+		Set<Set<Integer>> results = allResultsDpll(clone(clauses));
 		
 		for(Set<Integer> result: results){
 			if(isValidDualClause(result, clauses)){
@@ -347,14 +339,16 @@ public class DPLLSolver implements Solver {
 	}
 	
 	public static void main(String[] args) throws IOException {
+		
 		System.out.println(System.currentTimeMillis());
 		DimacsParser parser = new DimacsParser();
-		List<Clause> clauses = parser.parse("/home/murillo/Desktop/uf20-0113.cnf");
+		List<Clause> clauses = parser.parse("examples/dual_example.cnf");
 		
 		DPLLSolver solver =  new DPLLSolver();
 		
-		System.out.println(solver.toMinimalDualClauses(clauses).size());
+		System.out.println(solver.toMinimalDualClauses(clauses));
 		System.out.println(System.currentTimeMillis());
+		
 	}
 
 }
