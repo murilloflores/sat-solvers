@@ -97,12 +97,14 @@ public class DualSolver implements Solver {
 		//step 3
 		List<Clause> gapConditions = gapConditions(currentState, quantumTable);
 		for(Clause clause: gapConditions){
+			
 			if(!intersects(clause, possibleExtensions)){
 				return new ArrayList<SearchState>();
 			}
 		}
 		
 		List<Quantum> usedQuantums = new ArrayList<Quantum>();
+		List<Quantum> refused = new ArrayList<Quantum>();
 		//step 4
 		for(Quantum quantum: possibleExtensions){
 			
@@ -121,11 +123,19 @@ public class DualSolver implements Solver {
 				}
 				
 				usedQuantums.add(quantum);
+
 				sucessors.add(possibleNextState);
 				
+			}else{
+				refused.add(quantum);
 			}
 			
-			
+		}
+		
+		for(SearchState sucessor: sucessors){
+			for(Quantum quantum: refused){
+				sucessor.addForbiddenQuantum(quantum);
+			}
 		}
 		
 		return sucessors;
@@ -482,7 +492,7 @@ public class DualSolver implements Solver {
 	
 		DimacsParser parser = new DimacsParser();
 		
-		List<Clause> clauses = parser.parse("/home/murillo/Desktop/uf20-0113.cnf");
+		List<Clause> clauses = parser.parse("/home/murillo/Desktop/uf20-0110.cnf");
 //		List<Clause> expectedAnswer = parser.parse("examples/t3.dnf");
 		
 		DualSolver solver =  new DualSolver();
