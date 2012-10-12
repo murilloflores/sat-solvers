@@ -110,10 +110,9 @@ public class DualSolver implements Solver {
 			
 			SearchState possibleNextState = new SearchState(currentState);
 			possibleNextState.addQuantum(quantum);
+			possibleNextState.addForbiddenQuantum(quantumTable.getQuantum(quantum.getLiteral() * -1));
 			removeFromGapClausesOfQuantum(possibleNextState, quantum);
 			
-			//TODO Refactor this code to check new condition just if the first matches
-		
 			if(isExclusiveCoordinateCompatible(currentState, quantum) 
 					&& isNewRestrictionsContradictory(possibleNextState, quantumTable) 
 					&& isNewRestrictionsCompatibleWithForbiddenList(possibleNextState, quantumTable, currentState)){
@@ -121,7 +120,6 @@ public class DualSolver implements Solver {
 				for(Quantum forbiddenQuantum:usedQuantums){
 					possibleNextState.addForbiddenQuantum(forbiddenQuantum);
 				}
-				
 				usedQuantums.add(quantum);
 
 				sucessors.add(possibleNextState);
@@ -291,28 +289,14 @@ public class DualSolver implements Solver {
 		
 		removeForbiddenQuantums(possibleExtensions, currentState);
 		
-		//TODO As I dont know how the algorithm evict contradictions, im introducing my own method :)
-		removeContradictoryQuantums(possibleExtensions, currentState, quantumTable);
-		
 		return possibleExtensions;
 	}
 
-	private void removeContradictoryQuantums(List<Quantum> possibleExtensions, SearchState currentState, QuantumTable quantumTable) {
-
-		for(Quantum quantum:currentState.getQuantums()){
-			Quantum mirrorQuantum = quantumTable.getQuantum(quantum.getLiteral() * -1);
-			possibleExtensions.remove(mirrorQuantum);
-		}
-		
-	}
-
 	private void removeForbiddenQuantums(List<Quantum> possibleExtensions, SearchState currentState) {
-		
 		Set<Quantum> forbiddenQuantums = currentState.getForbiddenQuantums();
 		for(Quantum forbiddenQuantum: forbiddenQuantums){
 			possibleExtensions.remove(forbiddenQuantum);
 		}
-		
 	}
 
 	private Set<Integer> getLiteralsFromGapOf(SearchState currentState) {
@@ -390,6 +374,7 @@ public class DualSolver implements Solver {
 		for(int i=0; i<quantumsOfClause.size(); i++){
 			SearchState state = new SearchState();
 			state.addQuantum(quantumsOfClause.get(i));
+			state.addForbiddenQuantum(quantumTable.getQuantum(quantumsOfClause.get(i).getLiteral() * -1));
 			
 			//TODO Im sure it can be done in a better way
 			for(int j=i-1; j>=0; j--){
@@ -464,23 +449,6 @@ public class DualSolver implements Solver {
 		}
 		
 		return table;
-		
-	}
-	
-	// -------------------------------------------------------------
-	// AUXILIAR METHOD ON DEBUGGING
-	// -------------------------------------------------------------
-	
-	private void checkContradition(SearchState possibleNextState, QuantumTable quantumTable) {
-
-		for(Quantum quantum:possibleNextState.getQuantums()){
-			Quantum mirrorQuantum = quantumTable.getQuantum(quantum.getLiteral() * -1);
-			if(possibleNextState.getQuantums().contains(mirrorQuantum)){
-				System.out.println("Contradiction!!!!!!");
-				System.out.println(possibleNextState);
-				System.exit(-1);
-			}
-		}
 		
 	}
 	
