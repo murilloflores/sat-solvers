@@ -69,9 +69,7 @@ public class DualSolver implements Solver {
 			openedStates.remove(currentState);
 			closedStates.add(currentState);
 			
-			List<SearchState> neighbors = calculateNehighBors(currentState, quantumTable);
-			
-			//do some checks?
+			List<SearchState> neighbors = calculateNeighbors(currentState, quantumTable);
 			
 			for(SearchState state: neighbors){
 				openedStates.add(state);
@@ -86,7 +84,7 @@ public class DualSolver implements Solver {
 	
 	
 	
-	private List<SearchState> calculateNehighBors(SearchState currentState, QuantumTable quantumTable) {
+	private List<SearchState> calculateNeighbors(SearchState currentState, QuantumTable quantumTable) {
 		// TODO Sucessors function implemented from pg 25
 		
 		List<SearchState> sucessors = new ArrayList<SearchState>();
@@ -111,24 +109,40 @@ public class DualSolver implements Solver {
 			
 			SearchState possibleNextState = new SearchState(currentState);
 			possibleNextState.addQuantum(quantum);
+			removeFromGapClausesOfQuantum(possibleNextState, quantum);
 			
 			//TODO Refactor this code to check new condition just if the first matches
-			boolean exclusiveCoordinateAreCompatible = isExclusiveCoordinateCompatible(currentState, quantum);
-			boolean newRestrictionsAreNotContradictory = isNewRestrictionsContradictory(possibleNextState, quantumTable);
-			boolean newRestrictionsAreCompatibleWithForbiddenList = isNewRestrictionsCompatibleWithForbiddenList(possibleNextState, quantumTable, currentState);
 		
-			if(exclusiveCoordinateAreCompatible && newRestrictionsAreNotContradictory && newRestrictionsAreCompatibleWithForbiddenList){
+			if(isExclusiveCoordinateCompatible(currentState, quantum) 
+					&& isNewRestrictionsContradictory(possibleNextState, quantumTable) 
+					&& isNewRestrictionsCompatibleWithForbiddenList(possibleNextState, quantumTable, currentState)){
+				
 				for(Quantum forbiddenQuantum:usedQuantums){
 					possibleNextState.addForbiddenQuantum(forbiddenQuantum);
 				}
+				
 				usedQuantums.add(quantum);
 				sucessors.add(possibleNextState);
+				
 			}
 			
 			
 		}
 		
 		return sucessors;
+	}
+
+	private void removeFromGapClausesOfQuantum(SearchState possibleNextState, Quantum quantum) {
+		
+		List<Clause> gap = possibleNextState.getGap();
+		
+		for(Integer coordinate: quantum.getCoordinates()){
+			gap.remove(this.cnfClauses.get(coordinate));
+		}
+		
+		possibleNextState.setGap(gap);
+		
+		
 	}
 
 	private boolean isNewRestrictionsCompatibleWithForbiddenList(SearchState possibleNextState, QuantumTable quantumTable, SearchState currentState) {
@@ -208,7 +222,7 @@ public class DualSolver implements Solver {
 		List<Clause> gapConditions = new ArrayList<Clause>();
 		
 		Set<Quantum> mirrorQuantums = calculateMirror(state.getQuantums(), quantumTable); 
-		List<Clause> gap = calculateGap(state);
+		List<Clause> gap = state.getGap();
 		
 		for(Clause clause: gap){
 			if(!intersects(clause, mirrorQuantums)) continue;
@@ -290,7 +304,7 @@ public class DualSolver implements Solver {
 	}
 
 	private Set<Integer> getLiteralsFromGapOf(SearchState currentState) {
-		List<Clause> gap = calculateGap(currentState);
+		List<Clause> gap = currentState.getGap();
 
 		Set<Integer> literalsInTheClausesOfGap = new HashSet<Integer>();
 		for(Clause clause: gap){
@@ -302,18 +316,18 @@ public class DualSolver implements Solver {
 	}
 
 	private boolean isFinalState(SearchState state) {
-		return calculateGap(state).isEmpty();
+		return state.getGap().isEmpty();
 	}
 
 	private SearchState getStateWithSmallestGap(List<SearchState> openedStates) {
 		
 		int betterStateIndex = 0;
-		List<Clause> minorGap = calculateGap(openedStates.get(0));
+		List<Clause> minorGap = openedStates.get(0).getGap();
 		
 		for(int i=1; i < openedStates.size(); i++){
 			
 			SearchState state = openedStates.get(i);
-			List<Clause> gap = calculateGap(state);
+			List<Clause> gap = state.getGap();
 			
 			if(gap.size() < minorGap.size()){
 				minorGap = gap;
@@ -369,6 +383,9 @@ public class DualSolver implements Solver {
 			for(int j=i-1; j>=0; j--){
 				state.addForbiddenQuantum(quantumsOfClause.get(j));
 			}
+			
+			List<Clause> calculatedGap = calculateGap(state);
+			state.setGap(calculatedGap);
 			
 			initialOpenedStates.add(state);
 		}
@@ -463,14 +480,17 @@ public class DualSolver implements Solver {
 	
 		DimacsParser parser = new DimacsParser();
 		
-		List<Clause> clauses = parser.parse("examples/t3.cnf");
-		List<Clause> expectedAnswer = parser.parse("examples/t3.dnf");
+		List<Clause> clauses = parser.parse("/home/murillo/Desktop/uf20-0113.cnf");
+//		List<Clause> expectedAnswer = parser.parse("examples/t3.dnf");
 		
 		DualSolver solver =  new DualSolver();
 //		System.out.println(solver.isSatisfiable(clauses));
+		long begin = System.currentTimeMillis();
 		List<Clause> minimalDualClauses = solver.toMinimalDualClauses(clauses);
-		
-		compararSolucaoResposta(expectedAnswer, minimalDualClauses);		
+		long end = System.currentTimeMillis();
+		System.out.println("time: "+(end-begin));
+		System.out.println(minimalDualClauses);
+//		compararSolucaoResposta(expectedAnswer, minimalDualClauses);		
 		
 	}
 
