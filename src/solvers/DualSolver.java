@@ -75,7 +75,6 @@ public class DualSolver implements Solver {
 				openedStates.add(state);
 			}
 			
-			
 		}
 
 		return finalStates;
@@ -206,14 +205,17 @@ public class DualSolver implements Solver {
 
 
 	private Set<Integer> getExclusiveCoordinatesFor(SearchState currentState, Quantum quantum) {
+		
 		Quantum copy = new Quantum(quantum);
 		Set<Integer> coordinates =  copy.getCoordinates();
+		
 		for(Quantum currentStateQuantum: currentState.getQuantums()){
 			if(currentStateQuantum.equals(quantum)){
 				continue;
 			}
 			coordinates.removeAll(currentStateQuantum.getCoordinates());
 		}
+		
 		return coordinates;
 	}
 

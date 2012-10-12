@@ -15,14 +15,14 @@ public class SearchState {
 		
 		Set<Quantum> clonedQuantums = new HashSet<Quantum>();
 		for(Quantum quantum:searchState.getQuantums()){
-			clonedQuantums.add(new Quantum(quantum));
+			clonedQuantums.add(quantum);
 		}
 		
 		this.quantums = clonedQuantums;
 		
 		Set<Quantum> clonedForbiddenQuantums = new HashSet<Quantum>();
 		for(Quantum quantum: searchState.getForbiddenQuantums()){
-			clonedForbiddenQuantums.add(new Quantum(quantum));
+			clonedForbiddenQuantums.add(quantum);
 		}
 		
 		this.forbiddenQuantums = clonedForbiddenQuantums;

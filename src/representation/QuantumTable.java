@@ -26,4 +26,8 @@ public class QuantumTable {
 		return this.quantumMap.get(literal);
 	}
 	
+	public Integer getSize(){
+		return quantumMap.size();
+	}
+	
 }
