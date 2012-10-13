@@ -44,7 +44,7 @@ public class DualSolver implements Solver {
 	}
 	
 	public List<SearchState> calculateFinalStates(List<Clause> clauses, boolean returnFirst) {
-		
+		int loop = 0;
 		this.cnfClauses = clauses;
 		
 		QuantumTable quantumTable = buildQuantumTable();
@@ -54,7 +54,7 @@ public class DualSolver implements Solver {
 		List<SearchState> finalStates = new ArrayList<SearchState>();
 		
 		while(!openedStates.isEmpty()){
-		
+			loop++;
 			SearchState currentState = getStateWithSmallestGap(openedStates);
 
 			if(isFinalState(currentState)){
@@ -76,7 +76,7 @@ public class DualSolver implements Solver {
 			}
 			
 		}
-
+		System.out.println("loops : "+loop);
 		return finalStates;
 	}
 	
@@ -115,7 +115,8 @@ public class DualSolver implements Solver {
 			
 			if(isExclusiveCoordinateCompatible(currentState, quantum) 
 					&& isNewRestrictionsContradictory(possibleNextState, quantumTable) 
-					&& isNewRestrictionsCompatibleWithForbiddenList(possibleNextState, quantumTable, currentState)){
+					&& isNewRestrictionsCompatibleWithForbiddenList(possibleNextState, quantumTable, currentState)
+					&& isGapConditionsOk(possibleNextState, quantumTable)){
 				
 				for(Quantum forbiddenQuantum:usedQuantums){
 					possibleNextState.addForbiddenQuantum(forbiddenQuantum);
@@ -139,6 +140,24 @@ public class DualSolver implements Solver {
 		return sucessors;
 	}
 
+	private boolean isGapConditionsOk(SearchState state, QuantumTable table){
+		
+		List<Clause> nextStateGapConditions = gapConditions(state, table);
+		for(Clause clause: nextStateGapConditions){
+			if(clause.isEmpty()) return false;
+			if(clause.isUnit()){
+				for(Clause otherClause: nextStateGapConditions){
+					if(otherClause.isUnit() && otherClause.getLiterals().get(0).equals(clause.getLiterals().get(0) * -1)){
+						return false;
+					}
+				}
+			}
+		}
+		
+		return true;
+		
+	}
+	
 	private void removeFromGapClausesOfQuantum(SearchState possibleNextState, Quantum quantum) {
 		
 		List<Clause> gap = possibleNextState.getGap();
@@ -460,7 +479,7 @@ public class DualSolver implements Solver {
 	
 		DimacsParser parser = new DimacsParser();
 		
-		List<Clause> clauses = parser.parse("/home/murillo/Desktop/uf20-0110.cnf");
+		List<Clause> clauses = parser.parse("/home/murillo/Desktop/uf20-0113.cnf");
 //		List<Clause> expectedAnswer = parser.parse("examples/t3.dnf");
 		
 		DualSolver solver =  new DualSolver();
@@ -469,6 +488,7 @@ public class DualSolver implements Solver {
 		List<Clause> minimalDualClauses = solver.toMinimalDualClauses(clauses);
 		long end = System.currentTimeMillis();
 		System.out.println("time: "+(end-begin));
+		System.out.println(minimalDualClauses.size());
 		System.out.println(minimalDualClauses);
 //		compararSolucaoResposta(expectedAnswer, minimalDualClauses);		
 		
