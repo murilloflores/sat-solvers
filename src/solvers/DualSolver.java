@@ -89,9 +89,9 @@ public class DualSolver implements Solver {
 		}
 		
 		long end = System.currentTimeMillis();
-		System.out.print((timeFirst-begin)/10);
+		System.out.print((timeFirst-begin));
 		System.out.print(" | "+(loopsFirst));
-		System.out.print(" | "+(end-begin)/10);
+		System.out.print(" | "+(end-begin));
 		System.out.println(" | "+(loops));
 		
 		return finalStates;
@@ -160,35 +160,34 @@ public class DualSolver implements Solver {
 			possibleNextState.addForbiddenQuantum(quantumTable.getQuantum(quantum.getLiteral() * -1));
 			removeFromGapClausesOfQuantum(possibleNextState, quantum);
 			
-			for(Quantum forbiddenQuantum:usedQuantums){
-				possibleNextState.addForbiddenQuantum(forbiddenQuantum);
-			}
-			
-			for(Quantum refusedQuantum: refused){
-				possibleNextState.addForbiddenQuantum(refusedQuantum);
-			}
 			
 			if(isExclusiveCoordinateCompatible(currentState, quantum) 
 					&& isNewRestrictionsContradictory(possibleNextState, quantumTable) 
 					&& isNewRestrictionsCompatibleWithForbiddenList(possibleNextState, quantumTable, currentState)
 					&& isGapConditionsOk(possibleNextState, quantumTable)){
 				
+				for(Quantum forbiddenQuantum:usedQuantums){
+					possibleNextState.addForbiddenQuantum(forbiddenQuantum);
+				}
+				
+				if(haveFuture(possibleNextState, quantumTable)){
+					sucessors.add(possibleNextState);
+				}
 				usedQuantums.add(quantum);
+				
 
-				sucessors.add(possibleNextState);
 				
 			}else{
 				refused.add(quantum);
 			}
 			
-			currentState.addForbiddenQuantum(quantum);
 		}
 		
-//		for(SearchState sucessor: sucessors){
-//			for(Quantum quantum: refused){
-//				sucessor.addForbiddenQuantum(quantum);
-//			}
-//		}
+		for(SearchState sucessor: sucessors){
+			for(Quantum quantum: refused){
+				sucessor.addForbiddenQuantum(quantum);
+			}
+		}
 		
 //		System.out.print("used: ");
 //		for(Quantum quantum: usedQuantums){
@@ -207,6 +206,17 @@ public class DualSolver implements Solver {
 		return sucessors;
 	}
 
+	private boolean haveFuture(SearchState state, QuantumTable table){
+		
+		List<Clause> nextStateGapConditions = gapConditions(state, table);
+		for(Clause clause: nextStateGapConditions){
+			if(areAllLiteralsInQuantums(clause.getLiterals(), state.getForbiddenQuantums())) return false;
+		}
+		
+		return true;
+	}
+	
+	
 	private boolean isGapConditionsOk(SearchState state, QuantumTable table){
 		
 		List<Clause> nextStateGapConditions = gapConditions(state, table);
@@ -220,8 +230,6 @@ public class DualSolver implements Solver {
 					}
 				}
 			}
-			
-//			if(areAllLiteralsInQuantums(clause.getLiterals(), state.getForbiddenQuantums())) return false;
 			
 		}
 		
