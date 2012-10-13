@@ -44,8 +44,13 @@ public class DualSolver implements Solver {
 	}
 	
 	public List<SearchState> calculateFinalStates(List<Clause> clauses, boolean returnFirst) {
-		int loop = 0;
+		
 		this.cnfClauses = clauses;
+
+		long loops = 0;
+		long begin = System.currentTimeMillis();
+		long loopsFirst = 0;
+		long timeFirst = 0;
 		
 		QuantumTable quantumTable = buildQuantumTable();
 		
@@ -54,10 +59,16 @@ public class DualSolver implements Solver {
 		List<SearchState> finalStates = new ArrayList<SearchState>();
 		
 		while(!openedStates.isEmpty()){
-			loop++;
+			loops++;
 			SearchState currentState = getStateWithSmallestGap(openedStates);
 
 			if(isFinalState(currentState)){
+				
+				if(loopsFirst == 0){
+					loopsFirst = loops;
+					timeFirst = System.currentTimeMillis();
+				}
+				
 				openedStates.remove(currentState);
 				finalStates.add(currentState);
 				if(returnFirst){
@@ -76,7 +87,13 @@ public class DualSolver implements Solver {
 			}
 			
 		}
-		System.out.println("loops : "+loop);
+		
+		long end = System.currentTimeMillis();
+		System.out.print((timeFirst-begin)/10);
+		System.out.print(" | "+(loopsFirst));
+		System.out.print(" | "+(end-begin)/10);
+		System.out.println(" | "+(loops));
+		
 		return finalStates;
 	}
 	
@@ -84,7 +101,8 @@ public class DualSolver implements Solver {
 	
 	
 	private List<SearchState> calculateNeighbors(SearchState currentState, QuantumTable quantumTable) {
-		// TODO Sucessors function implemented from pg 25
+		
+		// Sucessors function implemented from pg 25
 		
 		List<SearchState> sucessors = new ArrayList<SearchState>();
 		
@@ -94,11 +112,40 @@ public class DualSolver implements Solver {
 		//step 2
 		sortQuantumsAccordingTOHeuristic(possibleExtensions);
 		
+//		System.out.print("Selected: ");
+//		for(Quantum quantum: currentState.getQuantums()){
+//			System.out.print(quantum.getLiteral() + ", ");
+//		}
+//		System.out.println("");
+//		
+//		System.out.print("Gap: ");
+//		for(Clause clause: currentState.getGap()){
+//			for(int i=0; i<this.cnfClauses.size();i++){
+//				if(clause.equals(this.cnfClauses.get(i))){
+//					System.out.print(i+", ");
+//				}
+//			}
+//		}
+//		System.out.println("");
+//		
+//		System.out.print("Possible extensions: ");
+//		for(Quantum quantum: possibleExtensions){
+//			System.out.print(quantum.getLiteral() + ", ");
+//		}
+//		System.out.println("");
+//		
+//		System.out.print("Forbidden quanta: ");
+//		for(Quantum quantum: currentState.getForbiddenQuantums()){
+//			System.out.print(quantum.getLiteral() + ", ");
+//		}
+//		System.out.println("");
+		
 		//step 3
 		List<Clause> gapConditions = gapConditions(currentState, quantumTable);
 		for(Clause clause: gapConditions){
 			
 			if(!intersects(clause, possibleExtensions)){
+//				System.out.println("------");
 				return new ArrayList<SearchState>();
 			}
 		}
@@ -113,14 +160,19 @@ public class DualSolver implements Solver {
 			possibleNextState.addForbiddenQuantum(quantumTable.getQuantum(quantum.getLiteral() * -1));
 			removeFromGapClausesOfQuantum(possibleNextState, quantum);
 			
+			for(Quantum forbiddenQuantum:usedQuantums){
+				possibleNextState.addForbiddenQuantum(forbiddenQuantum);
+			}
+			
+			for(Quantum refusedQuantum: refused){
+				possibleNextState.addForbiddenQuantum(refusedQuantum);
+			}
+			
 			if(isExclusiveCoordinateCompatible(currentState, quantum) 
 					&& isNewRestrictionsContradictory(possibleNextState, quantumTable) 
 					&& isNewRestrictionsCompatibleWithForbiddenList(possibleNextState, quantumTable, currentState)
 					&& isGapConditionsOk(possibleNextState, quantumTable)){
 				
-				for(Quantum forbiddenQuantum:usedQuantums){
-					possibleNextState.addForbiddenQuantum(forbiddenQuantum);
-				}
 				usedQuantums.add(quantum);
 
 				sucessors.add(possibleNextState);
@@ -129,13 +181,28 @@ public class DualSolver implements Solver {
 				refused.add(quantum);
 			}
 			
+			currentState.addForbiddenQuantum(quantum);
 		}
 		
-		for(SearchState sucessor: sucessors){
-			for(Quantum quantum: refused){
-				sucessor.addForbiddenQuantum(quantum);
-			}
-		}
+//		for(SearchState sucessor: sucessors){
+//			for(Quantum quantum: refused){
+//				sucessor.addForbiddenQuantum(quantum);
+//			}
+//		}
+		
+//		System.out.print("used: ");
+//		for(Quantum quantum: usedQuantums){
+//			System.out.print(quantum.getLiteral() + ", ");
+//		}
+//		System.out.println("");
+//		
+//		System.out.print("refused: ");
+//		for(Quantum quantum: refused){
+//			System.out.print(quantum.getLiteral() + ", ");
+//		}
+//		System.out.println("");
+//		
+//		System.out.println("-------");
 		
 		return sucessors;
 	}
@@ -145,6 +212,7 @@ public class DualSolver implements Solver {
 		List<Clause> nextStateGapConditions = gapConditions(state, table);
 		for(Clause clause: nextStateGapConditions){
 			if(clause.isEmpty()) return false;
+			
 			if(clause.isUnit()){
 				for(Clause otherClause: nextStateGapConditions){
 					if(otherClause.isUnit() && otherClause.getLiterals().get(0).equals(clause.getLiterals().get(0) * -1)){
@@ -152,6 +220,9 @@ public class DualSolver implements Solver {
 					}
 				}
 			}
+			
+//			if(areAllLiteralsInQuantums(clause.getLiterals(), state.getForbiddenQuantums())) return false;
+			
 		}
 		
 		return true;
@@ -479,16 +550,13 @@ public class DualSolver implements Solver {
 	
 		DimacsParser parser = new DimacsParser();
 		
-		List<Clause> clauses = parser.parse("/home/murillo/Desktop/uf20-0113.cnf");
+		List<Clause> clauses = parser.parse("/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0113.cnf");
 //		List<Clause> expectedAnswer = parser.parse("examples/t3.dnf");
 		
 		DualSolver solver =  new DualSolver();
 //		System.out.println(solver.isSatisfiable(clauses));
-		long begin = System.currentTimeMillis();
 		List<Clause> minimalDualClauses = solver.toMinimalDualClauses(clauses);
-		long end = System.currentTimeMillis();
-		System.out.println("time: "+(end-begin));
-		System.out.println(minimalDualClauses.size());
+		System.out.println("Size: "+minimalDualClauses.size());
 		System.out.println(minimalDualClauses);
 //		compararSolucaoResposta(expectedAnswer, minimalDualClauses);		
 		
