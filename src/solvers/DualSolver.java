@@ -3,11 +3,16 @@ package solvers;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.swing.plaf.ListUI;
+
+import org.apache.commons.collections.CollectionUtils;
 
 import parser.DimacsParser;
 import representation.Clause;
@@ -64,6 +69,8 @@ public class DualSolver implements Solver {
 
 			if(isFinalState(currentState)){
 				
+//				System.out.println("\n****** final ******\n");
+				
 				if(loopsFirst == 0){
 					loopsFirst = loops;
 					timeFirst = System.currentTimeMillis();
@@ -110,15 +117,20 @@ public class DualSolver implements Solver {
 		List<Quantum> possibleExtensions = determinePossibleExtensions(currentState, quantumTable);
 		
 		//step 2
-		sortQuantumsAccordingTOHeuristic(possibleExtensions);
+		sortQuantumsAccordingTOHeuristic(possibleExtensions, currentState);
 		
-//		System.out.print("Selected: ");
+		String tabs = "";
+		for(int i=1; i<currentState.getQuantums().size(); i++){
+			tabs += "\t";
+		}
+		
+//		System.out.print(tabs+"Selected: ");
 //		for(Quantum quantum: currentState.getQuantums()){
 //			System.out.print(quantum.getLiteral() + ", ");
 //		}
-//		System.out.println("");
+//		System.out.println(tabs+"");
 //		
-//		System.out.print("Gap: ");
+//		System.out.print(tabs+"Gap: ");
 //		for(Clause clause: currentState.getGap()){
 //			for(int i=0; i<this.cnfClauses.size();i++){
 //				if(clause.equals(this.cnfClauses.get(i))){
@@ -126,26 +138,26 @@ public class DualSolver implements Solver {
 //				}
 //			}
 //		}
-//		System.out.println("");
+//		System.out.println(tabs+"");
 //		
-//		System.out.print("Possible extensions: ");
+//		System.out.print(tabs+"Possible extensions: ");
 //		for(Quantum quantum: possibleExtensions){
 //			System.out.print(quantum.getLiteral() + ", ");
 //		}
-//		System.out.println("");
+//		System.out.println(tabs+"");
 //		
-//		System.out.print("Forbidden quanta: ");
+//		System.out.print(tabs+"Forbidden quanta: ");
 //		for(Quantum quantum: currentState.getForbiddenQuantums()){
 //			System.out.print(quantum.getLiteral() + ", ");
 //		}
-//		System.out.println("");
+//		System.out.println(tabs+"");
 		
 		//step 3
 		List<Clause> gapConditions = gapConditions(currentState, quantumTable);
 		for(Clause clause: gapConditions){
 			
 			if(!intersects(clause, possibleExtensions)){
-//				System.out.println("------");
+//				System.out.println(tabs+"------");
 				return new ArrayList<SearchState>();
 			}
 		}
@@ -169,17 +181,8 @@ public class DualSolver implements Solver {
 				
 				for(Quantum forbiddenQuantum:usedQuantums){
 					possibleNextState.addForbiddenQuantum(forbiddenQuantum);
-				}
+				}			
 				
-//				if(haveFuture(possibleNextStateGapConditions, possibleNextState)){
-//					sucessors.add(possibleNextState);
-//				}else{
-//					System.out.print("future less: ");
-//					for(Quantum quantumFerrado: possibleNextState.getQuantums()){
-//						System.out.print(quantumFerrado.getLiteral()+", ");
-//					}
-//					System.out.println("");
-//				}
 				usedQuantums.add(quantum);
 				
 				sucessors.add(possibleNextState);
@@ -196,28 +199,35 @@ public class DualSolver implements Solver {
 			}
 		}
 		
-//		System.out.print("used: ");
+//		System.out.print(tabs+"used: ");
 //		for(Quantum quantum: usedQuantums){
 //			System.out.print(quantum.getLiteral() + ", ");
 //		}
-//		System.out.println("");
+//		System.out.println(tabs+"");
 //		
-//		System.out.print("refused: ");
+//		System.out.print(tabs+"refused: ");
 //		for(Quantum quantum: refused){
 //			System.out.print(quantum.getLiteral() + ", ");
 //		}
-//		System.out.println("");
-//		
-//		System.out.println("-------");
+//		System.out.println(tabs+"");
 		
 		List<SearchState> sucessorsWithFuture = new ArrayList<SearchState>();
 		for(SearchState sucessor: sucessors){
 			List<Clause> gapConditionsSucessor = gapConditions(sucessor, quantumTable);
 			if(haveFuture(gapConditionsSucessor, sucessor)){
 				sucessorsWithFuture.add(sucessor);
+			} else {
+//				System.out.print(tabs+"future less: ");
+//
+//				for (Quantum quantumFerrado : sucessor.getQuantums()) {
+//					System.out.print(quantumFerrado.getLiteral() + ", ");
+//				}
+//				System.out.println(tabs+"");
 			}
 		}
 		
+		
+//		System.out.println(tabs+"-------");
 		return sucessorsWithFuture;
 	}
 
@@ -485,7 +495,7 @@ public class DualSolver implements Solver {
 			quantumsOfClause.add(quantumTable.getQuantum(literal));
 		}
 		
-		quantumsOfClause = sortQuantumsAccordingTOHeuristic(quantumsOfClause);
+//		quantumsOfClause = sortQuantumsAccordingTOHeuristic(quantumsOfClause, );
 		
 		List<SearchState> initialOpenedStates = new ArrayList<SearchState>();
 		
@@ -509,9 +519,54 @@ public class DualSolver implements Solver {
 		
 	}
 
-	private List<Quantum> sortQuantumsAccordingTOHeuristic(List<Quantum> quantumsOfClause) {
-		// TODO Implement the heuristic pg 22
+	private List<Quantum> sortQuantumsAccordingTOHeuristic(List<Quantum> quantumsOfClause, SearchState currentState) {
+		
+		List<Clause> gap = currentState.getGap();
+		List<Integer> gapCoordinates = getCoordinates(gap);
+		
+		for(int i=0; i<quantumsOfClause.size(); i++){
+			for(int j=i+1; j<quantumsOfClause.size(); j++){
+				
+				Quantum quantumI = quantumsOfClause.get(i);
+				Quantum quantumJ = quantumsOfClause.get(j);
+				
+				Set<Integer> coordinatesInterGapI = new HashSet<Integer>(quantumI.getCoordinates());
+				coordinatesInterGapI.retainAll(gapCoordinates);
+				
+				Set<Integer> coordinatesInterGapJ = new HashSet<Integer>(quantumJ.getCoordinates());
+				coordinatesInterGapJ.retainAll(gapCoordinates);
+				
+				Set<Integer> coordinatesInterGapIJ = new HashSet<Integer>(coordinatesInterGapI);
+				coordinatesInterGapIJ.retainAll(coordinatesInterGapJ);
+				
+				Collection coordinatesIMinusIJ = CollectionUtils.subtract(coordinatesInterGapI, coordinatesInterGapIJ);
+				Collection coordinatesJMinusIJ = CollectionUtils.subtract(coordinatesInterGapJ, coordinatesInterGapIJ);
+				
+				if(!(coordinatesIMinusIJ.size() > coordinatesJMinusIJ.size())){
+					
+					quantumsOfClause.set(i, quantumJ);
+					quantumsOfClause.set(j, quantumI);
+					
+				}
+				
+			}
+		}
+		
 		return quantumsOfClause;
+	}
+
+	private List<Integer> getCoordinates(List<Clause> clauses) {
+		
+		List<Integer> coordinates = new ArrayList<Integer>();
+		
+		for(int i=0; i<this.cnfClauses.size(); i++){
+			if(clauses.contains(cnfClauses.get(i))){
+				coordinates.add(new Integer(i));
+			}
+		}
+		
+		return coordinates;
+		
 	}
 
 	private Clause getBestCnfClauseToStart(QuantumTable quantumTable) {
