@@ -169,7 +169,10 @@ public class DualSolver implements Solver {
 			
 			SearchState possibleNextState = new SearchState(currentState);
 			possibleNextState.addQuantum(quantum);
-			possibleNextState.addForbiddenQuantum(quantumTable.getQuantum(quantum.getLiteral() * -1));
+			Quantum mirrorQuantum = quantumTable.getQuantum(quantum.getLiteral() * -1);
+			if(mirrorQuantum != null){
+				possibleNextState.addForbiddenQuantum(mirrorQuantum);
+			}
 			removeFromGapClausesOfQuantum(possibleNextState, quantum);
 			
 			List<Clause> possibleNextStateGapConditions = gapConditions(possibleNextState, quantumTable);
@@ -305,13 +308,14 @@ public class DualSolver implements Solver {
 		return true;
 	}
 
-	private boolean containsLiteral(Set<Quantum> forbiddenQuantums,	Integer literal) {
-		
-		for(Quantum quantum: forbiddenQuantums){
-			if(quantum.getLiteral().equals(literal)) return true;
+	private boolean containsLiteral(Set<Quantum> forbiddenQuantums,
+			Integer literal) {
+		for (Quantum quantum : forbiddenQuantums) {
+			if (quantum.getLiteral().equals(literal))
+				return true;
 		}
 		return false;
-		
+
 	}
 
 	private boolean isNewRestrictionsContradictory(SearchState possibleNextState, QuantumTable quantumTable) {
@@ -633,7 +637,7 @@ public class DualSolver implements Solver {
 	
 		DimacsParser parser = new DimacsParser();
 		
-		List<Clause> clauses = parser.parse("/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0112.cnf");
+		List<Clause> clauses = parser.parse("/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0117.cnf");
 //		List<Clause> expectedAnswer = parser.parse("examples/t3.dnf");
 		
 		DualSolver solver =  new DualSolver();
