@@ -27,7 +27,8 @@ public class DualSolver implements Solver {
 	@Override
 	public List<Clause> toMinimalDualClauses(Theory theory) {
 		
-		calculateFinalStates(theory, false);
+		List<SearchState> finalStates = calculateFinalStates(theory, false);
+		System.out.println("final: "+finalStates);
 		return new ArrayList<Clause>();
 		
 	}
@@ -74,7 +75,7 @@ public class DualSolver implements Solver {
 			}
 			
 		}
-//		
+		
 //		long end = System.currentTimeMillis();
 //		System.out.print((timeFirst-begin));
 //		System.out.print(" | "+(loopsFirst));
@@ -376,8 +377,7 @@ public class DualSolver implements Solver {
 			} 
 		}
 		
-		
-		return new ArrayList<SearchState>();
+		return sucessorsWithFuture;
 	}
 
 	
@@ -386,8 +386,9 @@ public class DualSolver implements Solver {
 		byte[] gap = possibleNextState.getGap();
 		byte[] coordinates = getCoordinates(quantum);
 		
-		byte[] newQuantum = byteArrayXor(gap, coordinates);
-		possibleNextState.setGap(newQuantum);
+		byte[] newGap = byteArrayAnd(gap, coordinates);
+		newGap = byteArrayXor(newGap, gap);
+		possibleNextState.setGap(newGap);
 		
 	}
 	
