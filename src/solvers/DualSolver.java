@@ -243,8 +243,11 @@ public class DualSolver implements Solver {
 				
 				byte[] interGapIJ = byteArrayAnd(interGapQuantumI, interGapQuantumJ);
 				
-				int counterInterGapIMinusIJ = BitWiseUtils.countOnes(byteArrayXor(interGapQuantumI, interGapIJ));
-				int counterInterGapJMinusIJ = BitWiseUtils.countOnes(byteArrayXor(interGapQuantumJ, interGapIJ));
+				byte[] interGapIMinusIJ = subtract(interGapQuantumI, interGapIJ);
+				int counterInterGapIMinusIJ = BitWiseUtils.countOnes(interGapIMinusIJ);
+				
+				byte[] inteGapJMinusIJ = subtract(interGapQuantumJ, interGapIJ);
+				int counterInterGapJMinusIJ = BitWiseUtils.countOnes(inteGapJMinusIJ);
 				
 				if(counterInterGapIMinusIJ == counterInterGapJMinusIJ){
 					
@@ -259,8 +262,8 @@ public class DualSolver implements Solver {
 					
 					byte[] interGapMirrorIJ = byteArrayAnd(interGapMirrorI, interGapMirrorJ);
 					
-					int counterInterGapMirrorIMinusIJ = BitWiseUtils.countOnes(byteArrayXor(interGapMirrorI, interGapMirrorIJ));
-					int counterInterGapMirrorJMinusIJ = BitWiseUtils.countOnes(byteArrayXor(interGapMirrorJ, interGapMirrorIJ));
+					int counterInterGapMirrorIMinusIJ = BitWiseUtils.countOnes(subtract(interGapMirrorI, interGapMirrorIJ));
+					int counterInterGapMirrorJMinusIJ = BitWiseUtils.countOnes(subtract(interGapMirrorJ, interGapMirrorIJ));
 					
 					if(!(counterInterGapMirrorIMinusIJ > counterInterGapMirrorJMinusIJ)){
 						possibleExtensions.set(i, quantumJ);
@@ -277,6 +280,14 @@ public class DualSolver implements Solver {
 			}
 		}
 		
+	}
+
+	private byte[] subtract(byte[] b1, byte[] b2) {
+		
+		byte[] sub = byteArrayAnd(b1, b2);
+		sub = byteArrayXor(sub, b1);
+		
+		return sub;
 	}
 	
 
@@ -431,8 +442,7 @@ public class DualSolver implements Solver {
 		byte[] gap = possibleNextState.getGap();
 		byte[] coordinates = getCoordinates(quantum);
 		
-		byte[] newGap = byteArrayAnd(gap, coordinates);
-		newGap = byteArrayXor(newGap, gap);
+		byte[] newGap = subtract(gap, coordinates);
 		possibleNextState.setGap(newGap);
 		
 	}
