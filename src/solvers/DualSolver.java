@@ -338,8 +338,8 @@ public class DualSolver implements Solver {
 		System.out.println(BitWiseUtils.bitRepresentation(currentState.getGap()));
 		
 		System.out.print(tabs+"Possible extensions: ");
-		for(Integer quantum: possibleExtensions){
-			System.out.print(quantum + ", ");
+		for(int i=0; i< possibleExtensions.size(); i++){
+			System.out.print(possibleExtensions.get(i) + ", ");
 		}
 		System.out.println(tabs+"");
 		
