@@ -9,13 +9,14 @@ import java.util.Map;
 import parser.DimacsParser;
 
 import representation.Clause;
+import representation.Theory;
 
 
 
 public class DPLLSolver implements Solver {
 
 	@Override
-	public boolean isSatisfiable(List<Clause> clauses) {
+	public boolean isSatisfiable(List<Clause> clauses, Integer numberOfVariables) {
 		
 		unitPropagation(clauses);
 		if(clauses.isEmpty()) return true;
@@ -25,13 +26,13 @@ public class DPLLSolver implements Solver {
 		Integer complementaryLiteral = literal * -1;
 		
 		// BBO Heuristics can be applied here
-		if(isSatisfiable(cloneAndAddClauseWithLiteral(clauses, literal)) == true) return true;
-		else return isSatisfiable(cloneAndAddClauseWithLiteral(clauses, complementaryLiteral));
+		if(isSatisfiable(cloneAndAddClauseWithLiteral(clauses, literal), numberOfVariables) == true) return true;
+		else return isSatisfiable(cloneAndAddClauseWithLiteral(clauses, complementaryLiteral), numberOfVariables);
 		
 	}
 
 	@Override
-	public List<Clause> toMinimalDualClauses(List<Clause> clauses) {
+	public List<Clause> toMinimalDualClauses(List<Clause> clauses, Integer numberOfVariables) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -208,11 +209,11 @@ public class DPLLSolver implements Solver {
 	public static void main(String[] args) throws IOException {
 		
 		DimacsParser parser = new DimacsParser();
-		List<Clause> clauses = parser.parse("examples/uuf75-024.cnf");
+		Theory theory = parser.parse("examples/uuf75-024.cnf");
 		
 		Solver solver =  new DPLLSolver();
 		
-		System.out.println(solver.isSatisfiable(clauses));
+		System.out.println(solver.isSatisfiable(theory.getClauses(), theory.getNumberOfVariables()));
 		
 	}
 

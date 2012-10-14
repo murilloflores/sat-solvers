@@ -1,13 +1,12 @@
 package parser;
 
 import java.io.IOException;
-import java.util.List;
 
-import representation.Clause;
+import representation.Theory;
 
 
 public interface Parser {
 
-	List<Clause> parse(String filePath) throws IOException;
+	Theory parse(String filePath) throws IOException;
 	
 }

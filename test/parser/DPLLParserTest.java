@@ -1,13 +1,12 @@
 package parser;
 
 import java.io.IOException;
-import java.util.List;
 
 import junit.framework.Assert;
 
 import org.junit.Test;
 
-import representation.Clause;
+import representation.Theory;
 import solvers.DPLLSolver;
 
 
@@ -41,11 +40,11 @@ public class DPLLParserTest{
 	private void runtTest(String filePath, boolean expectedResult) throws IOException{
 	
 		DimacsParser parser = new DimacsParser();
-		List<Clause> clauses = parser.parse(filePath);
+		Theory theory = parser.parse(filePath);
 		
 		DPLLSolver solver =  new DPLLSolver();
 		
-		Assert.assertEquals(expectedResult, solver.isSatisfiable(clauses));
+		Assert.assertEquals(expectedResult, solver.isSatisfiable(theory.getClauses(), theory.getNumberOfVariables()));
 		
 	}
 	

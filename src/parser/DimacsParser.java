@@ -7,6 +7,7 @@ import java.util.List;
 import org.apache.commons.io.FileUtils;
 
 import representation.Clause;
+import representation.Theory;
 
 
 
@@ -15,7 +16,7 @@ public class DimacsParser implements Parser{
 	private static final String PROBLEM_LINE_PREFIX = "p";
 	private static final String COMMENT_PREFIX = "c";
 
-	public List<Clause> parse(String filePath) throws IOException{
+	public Theory parse(String filePath) throws IOException{
 		
 		List<Clause> clauses = null;
 		
@@ -23,6 +24,7 @@ public class DimacsParser implements Parser{
 		List<String> lines = FileUtils.readLines(file);
 		boolean passedByProblemLine = false;
 		int expectedNumberOfClauses = -1;
+		int numberOfVariables = -1;
 
 		for(String line: lines){
 			
@@ -33,6 +35,7 @@ public class DimacsParser implements Parser{
 			if (line.startsWith(PROBLEM_LINE_PREFIX)) {
 				checkValidFormat(line);
 				expectedNumberOfClauses = getNumberOfClauses(line);
+				numberOfVariables = getNumberOfVariables(line);
 				passedByProblemLine = true;
 				clauses = new ArrayList<Clause>(expectedNumberOfClauses);
 				continue;
@@ -55,7 +58,12 @@ public class DimacsParser implements Parser{
 			
 		}
 		
-		return clauses;
+		return new Theory(clauses, numberOfVariables, expectedNumberOfClauses);
+	}
+
+	private Integer getNumberOfVariables(String line) {
+		String numberOfVariables = getPiece(line, 2);
+		return new Integer(numberOfVariables);
 	}
 
 	private Integer getNumberOfClauses(String line) {
@@ -76,7 +84,7 @@ public class DimacsParser implements Parser{
 
 	public static void main(String[] args) throws IOException {
 		DimacsParser dimacsParser = new DimacsParser();
-		List<Clause> parse = dimacsParser.parse("/home/murillo/Desktop/material_tcc/satlib/ai/hoos/Shortcuts/UF75.325.100/uf75-02.cnf");
+		List<Clause> parse = dimacsParser.parse("/home/murillo/Desktop/material_tcc/satlib/ai/hoos/Shortcuts/UF75.325.100/uf75-02.cnf").getClauses();
 		System.out.println(parse);
 	}
 	

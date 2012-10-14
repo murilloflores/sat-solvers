@@ -16,21 +16,26 @@ import representation.Clause;
 import representation.Quantum;
 import representation.QuantumTable;
 import representation.SearchState;
+import representation.Theory;
+import util.BitWiseUtils;
 
 public class DualSolver implements Solver {
 
-	private List<Clause> cnfClauses;
+	private Theory theory;
+	private byte[][] quantumTable;
+	private int coordinatesArraySize;
 	
-	public boolean isSatisfiable(List<Clause> clauses){
-		List<SearchState> finalStates = calculateFinalStates(clauses, true);
+	public boolean isSatisfiable(Theory theory){
+		List<SearchState> finalStates = calculateFinalStates(theory, true);
 		return !finalStates.isEmpty();
 	}
 	
 	@Override
-	public List<Clause> toMinimalDualClauses(List<Clause> clauses) {
+	public List<Clause> toMinimalDualClauses(Theory theory) {
+		
 		List<Clause> minimalDualClauses = new ArrayList<Clause>();
 
-		List<SearchState> finalStates = calculateFinalStates(clauses, false);
+		List<SearchState> finalStates = calculateFinalStates(theory, false);
 		for(SearchState state : finalStates){
 			List<Integer> literals = new ArrayList<Integer>();
 			Set<Quantum> quantums = state.getQuantums();
@@ -45,62 +50,146 @@ public class DualSolver implements Solver {
 		
 	}
 	
-	public List<SearchState> calculateFinalStates(List<Clause> clauses, boolean returnFirst) {
+	public List<SearchState> calculateFinalStates(Theory theory, boolean returnFirst) {
 		
-		this.cnfClauses = clauses;
-
 		long loops = 0;
 		long begin = System.currentTimeMillis();
 		long loopsFirst = 0;
 		long timeFirst = 0;
+
+		this.coordinatesArraySize = (theory.getNumberOfClauses() + 7) / 8;
+		this.theory = theory;
+		buildQuantumTable();
 		
-		QuantumTable quantumTable = buildQuantumTable();
+		printQuantumTable();
 		
-		List<SearchState> openedStates = calculateInitialOpenedStates(quantumTable);
-		List<SearchState> closedStates = new ArrayList<SearchState>();
+//		List<SearchState> openedStates = calculateInitialOpenedStates(quantumTable);
+//		List<SearchState> closedStates = new ArrayList<SearchState>();
 		List<SearchState> finalStates = new ArrayList<SearchState>();
 		
-		while(!openedStates.isEmpty()){
-			loops++;
-			SearchState currentState = getStateWithSmallestGap(openedStates);
-
-			if(isFinalState(currentState)){
-				if(loopsFirst == 0){
-					loopsFirst = loops;
-					timeFirst = System.currentTimeMillis();
-				}
-				
-				openedStates.remove(currentState);
-				finalStates.add(currentState);
-				if(returnFirst){
-					return finalStates;
-				}
-				continue;
-			}
-			
-			openedStates.remove(currentState);
-			closedStates.add(currentState);
-			
-			List<SearchState> neighbors = calculateNeighbors(currentState, quantumTable);
-			
-			for(SearchState state: neighbors){
-				openedStates.add(state);
-			}
-			
-		}
-		
-		long end = System.currentTimeMillis();
-		System.out.print((timeFirst-begin));
-		System.out.print(" | "+(loopsFirst));
-		System.out.print(" | "+(end-begin));
-		System.out.println(" | "+(loops));
+//		while(!openedStates.isEmpty()){
+//			loops++;
+//			SearchState currentState = getStateWithSmallestGap(openedStates);
+//
+//			if(isFinalState(currentState)){
+//				if(loopsFirst == 0){
+//					loopsFirst = loops;
+//					timeFirst = System.currentTimeMillis();
+//				}
+//				
+//				openedStates.remove(currentState);
+//				finalStates.add(currentState);
+//				if(returnFirst){
+//					return finalStates;
+//				}
+//				continue;
+//			}
+//			
+//			openedStates.remove(currentState);
+//			closedStates.add(currentState);
+//			
+//			List<SearchState> neighbors = calculateNeighbors(currentState, quantumTable);
+//			
+//			for(SearchState state: neighbors){
+//				openedStates.add(state);
+//			}
+//			
+//		}
+//		
+//		long end = System.currentTimeMillis();
+//		System.out.print((timeFirst-begin));
+//		System.out.print(" | "+(loopsFirst));
+//		System.out.print(" | "+(end-begin));
+//		System.out.println(" | "+(loops));
 		
 		return finalStates;
 	}
 	
+	private void printQuantumTable() {
+		
+		for(int i=theory.getNumberOfVariables()*-1; i<= theory.getNumberOfVariables(); i++){
+			
+			if(i==0) continue;
+			
+			System.out.print(i+" -> ");
+			byte[] coordinates = getCoordinates(i);
+			
+			String representation = "";
+			for(int j=coordinatesArraySize-1; j>-1; j--){
+				String bits = BitWiseUtils.bitRepresentation(coordinates[j]); 
+				representation = bits + " " + representation; 
+			}
+			
+			System.out.print(representation);
+			System.out.println("");
+			
+		}
+		
+	}
 	
+	private byte[] getCoordinates(Integer literal){
+		int tableIndex = getQuantumTableIndex(literal);
+		return quantumTable[tableIndex];
+	}
+
+	private int getQuantumTableIndex(Integer literal) {
+		int tableIndex;
+		
+		if(literal < 0){
+			tableIndex = literal + theory.getNumberOfVariables();
+		}else{
+			tableIndex = literal + (theory.getNumberOfVariables() - 1);
+		}
+		
+		return tableIndex;
+	}
 	
+	private void buildQuantumTable(){
+		
+		int numberOfVariables = theory.getNumberOfVariables();
+		this.quantumTable = new byte[numberOfVariables * 2][coordinatesArraySize];
+		
+		for(int literal=numberOfVariables; literal>0; literal--){
+			fillTableForLiteral(literal);
+			fillTableForLiteral(literal * -1);
+		}
+		
+		
+	}
+
+	private void fillTableForLiteral(int literal) {
+		
+		List<Integer> clausesWithQuantum = getClausesWithQuantum(literal);
+		for(Integer clause: clausesWithQuantum){
+
+			int pos = clause / 8;
+			int piece = coordinatesArraySize - (pos +1);
+
+			byte b = (byte) ((int)(Math.pow(2, clause)) >>> (pos*8));
+			
+			int quantumTableIndex = getQuantumTableIndex(literal);
+			quantumTable[quantumTableIndex][piece] = (byte) (quantumTable[quantumTableIndex][piece] | b);
+			
+		}
+		
+	}
 	
+	private List<Integer> getClausesWithQuantum(int literal) {
+		
+		List<Clause> clauses = theory.getClauses();
+		
+		List<Integer> positions = new ArrayList<Integer>();
+		
+		for(int i=0; i<clauses.size(); i++){
+			if(clauses.get(i).getLiterals().contains(literal)){
+				positions.add(i);
+			}
+		}
+		
+		return positions;
+		
+	}
+
 	private List<SearchState> calculateNeighbors(SearchState currentState, QuantumTable quantumTable) {
 		
 		// Sucessors function implemented from pg 25
@@ -560,38 +649,17 @@ public class DualSolver implements Solver {
 		return cnfClauses.get(bestClauseIndex);
 	}
 
-	private QuantumTable buildQuantumTable(){
-		
-		QuantumTable table = new QuantumTable();
-		
-		for(int i=0;i<cnfClauses.size();i++){
-			
-			Clause clause = cnfClauses.get(i);
-			
-			List<Integer> literals = clause.getLiterals();
-			for(Integer literal:literals){
-
-				table.addCoordinate(literal, i);
-				
-			}
-			
-		}
-		
-		return table;
-		
-	}
-	
 	public static void main(String[] args) throws IOException {
 	
 		DimacsParser parser = new DimacsParser();
 		
-		List<Clause> clauses = parser.parse("/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0112.cnf");
+		Theory theory = parser.parse("examples/dual_example.cnf");
 		
 		DualSolver solver =  new DualSolver();
-		List<Clause> minimalDualClauses = solver.toMinimalDualClauses(clauses);
+		List<Clause> minimalDualClauses = solver.toMinimalDualClauses(theory);
 		System.out.println("Size: "+minimalDualClauses.size());
 		System.out.println(minimalDualClauses);
-		
+
 	}
 
 

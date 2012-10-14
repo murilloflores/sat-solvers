@@ -3,12 +3,13 @@ package solvers;
 import java.util.List;
 
 import representation.Clause;
+import representation.Theory;
 
 
 public interface Solver {
 
-	boolean isSatisfiable(List<Clause> clauses);
+	boolean isSatisfiable(List<Clause> clauses, Integer numberOfVariables);
 	
-	List<Clause> toMinimalDualClauses(List<Clause> clauses);
+	List<Clause> toMinimalDualClauses(Theory theory);
 	
 }
