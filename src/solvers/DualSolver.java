@@ -230,7 +230,7 @@ public class DualSolver implements Solver {
 		byte[] gap = currentState.getGap();
 	
 		for(int i=0; i<possibleExtensions.size(); i++){
-			for(int j=0; j<possibleExtensions.size(); j++){
+			for(int j=i+1; j<possibleExtensions.size(); j++){
 				
 				Integer quantumI = possibleExtensions.get(i);
 				byte[] coordinatesQuantumI = getCoordinates(quantumI);
