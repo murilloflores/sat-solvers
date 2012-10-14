@@ -52,7 +52,7 @@ public class BitWiseUtils {
 	}
 	
 	public static void main(String[] args) {
-		System.out.println(bitRepresentation(new byte[]{3, -1}));
+		System.out.println(bitRepresentation(new byte[]{0, 8}));
 	}
 	
 }

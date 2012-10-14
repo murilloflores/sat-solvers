@@ -323,10 +323,37 @@ public class DualSolver implements Solver {
 		//step 2
 		sortQuantumsAccordingToHeuristic(possibleExtensions, currentState);
 		
+		String tabs = "";
+		for(int i=1; i<currentState.getQuantums().size(); i++){
+			tabs += "\t";
+		}
+		
+		System.out.print(tabs+"Selected: ");
+		for(Integer quantum: currentState.getQuantums()){
+			System.out.print(quantum + ", ");
+		}
+		System.out.println(tabs+"");
+		
+		System.out.print(tabs+"Gap: ");
+		System.out.println(BitWiseUtils.bitRepresentation(currentState.getGap()));
+		
+		System.out.print(tabs+"Possible extensions: ");
+		for(Integer quantum: possibleExtensions){
+			System.out.print(quantum + ", ");
+		}
+		System.out.println(tabs+"");
+		
+		System.out.print(tabs+"Forbidden quanta: ");
+		for(Integer quantum: currentState.getForbiddenQuantums()){
+			System.out.print(quantum + ", ");
+		}
+		System.out.println(tabs+"");
+		
 		//step 3
 		List<Clause> gapConditions = gapConditions(currentState);
 		for(Clause clause: gapConditions){
 			if(!intersects(clause, possibleExtensions)){
+				System.out.println(tabs+"------");
 				return new ArrayList<SearchState>();
 			}
 		}
@@ -368,12 +395,30 @@ public class DualSolver implements Solver {
 			}
 		}
 		
+		System.out.print(tabs+"used: ");
+		for(Integer quantum: usedQuantums){
+			System.out.print(quantum + ", ");
+		}
+		System.out.println(tabs+"");
+		
+		System.out.print(tabs+"refused: ");
+		for(Integer quantum: refused){
+			System.out.print(quantum + ", ");
+		}
+		System.out.println(tabs+"");
 		
 		List<SearchState> sucessorsWithFuture = new ArrayList<SearchState>();
 		for(SearchState sucessor: sucessors){
 			List<Clause> gapConditionsSucessor = gapConditions(sucessor);
 			if(haveFuture(gapConditionsSucessor, sucessor)){
 				sucessorsWithFuture.add(sucessor);
+			} else {
+				System.out.print(tabs+"future less: ");
+				
+				for (Integer quantumFerrado : sucessor.getQuantums()) {
+					System.out.print(quantumFerrado + ", ");
+				}
+				System.out.println(tabs+"");
 			} 
 		}
 		
@@ -500,7 +545,7 @@ public class DualSolver implements Solver {
 			
 			byte[] coordinates = getCoordinates(i);
 			byte[] intersection = byteArrayAnd(gap, coordinates);
-			if(BitWiseUtils.countOnes(intersection) > 1){
+			if(BitWiseUtils.countOnes(intersection) > 0){
 				literalsInTheClausesOfGap.add(i);
 			}
 		
