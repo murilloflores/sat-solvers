@@ -27,9 +27,21 @@ public class DualSolver implements Solver {
 	@Override
 	public List<Clause> toMinimalDualClauses(Theory theory) {
 		
+
+		List<Clause> minimalDualClauses = new ArrayList<Clause>();
 		List<SearchState> finalStates = calculateFinalStates(theory, false);
-		System.out.println("final: "+finalStates);
-		return new ArrayList<Clause>();
+
+		for(SearchState state : finalStates){
+			List<Integer> literals = new ArrayList<Integer>();
+			Set<Integer> quantums = state.getQuantums();
+			for(Integer quantum: quantums){
+				literals.add(quantum);
+			}
+			
+			minimalDualClauses.add(new Clause(literals));
+		}
+		
+		return minimalDualClauses;
 		
 	}
 	
