@@ -47,6 +47,11 @@ public class DualSolver implements Solver {
 	
 	public List<SearchState> calculateFinalStates(Theory theory, boolean returnFirst) {
 		
+		long loops = 0;
+		long begin = System.currentTimeMillis();
+		long loopsFirst = 0;
+		long timeFirst = 0;
+		
 		this.coordinatesArraySize = (theory.getNumberOfClauses() + 7) / 8;
 		this.theory = theory;
 		buildQuantumTable();
@@ -58,14 +63,14 @@ public class DualSolver implements Solver {
 		List<SearchState> finalStates = new ArrayList<SearchState>();
 		
 		while(!openedStates.isEmpty()){
-//			loops++;
+			loops++;
 			SearchState currentState = getStateWithSmallestGap(openedStates);
 
 			if(isFinalState(currentState)){
-//				if(loopsFirst == 0){
-//					loopsFirst = loops;
-//					timeFirst = System.currentTimeMillis();
-//				}
+				if(loopsFirst == 0){
+					loopsFirst = loops;
+					timeFirst = System.currentTimeMillis();
+				}
 				
 				openedStates.remove(currentState);
 				finalStates.add(currentState);
@@ -88,11 +93,11 @@ public class DualSolver implements Solver {
 			
 		}
 		
-//		long end = System.currentTimeMillis();
-//		System.out.print((timeFirst-begin));
-//		System.out.print(" | "+(loopsFirst));
-//		System.out.print(" | "+(end-begin));
-//		System.out.println(" | "+(loops));
+		long end = System.currentTimeMillis();
+		System.out.print((timeFirst-begin));
+		System.out.print(" | "+(loopsFirst));
+		System.out.print(" | "+(end-begin));
+		System.out.println(" | "+(loops));
 		
 		return finalStates;
 	}
