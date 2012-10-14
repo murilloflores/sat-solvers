@@ -8,7 +8,7 @@ import representation.Theory;
 
 public interface Solver {
 
-	boolean isSatisfiable(List<Clause> clauses, Integer numberOfVariables);
+	boolean isSatisfiable(Theory theory);
 	
 	List<Clause> toMinimalDualClauses(Theory theory);
 	

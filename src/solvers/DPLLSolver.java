@@ -16,7 +16,17 @@ import representation.Theory;
 public class DPLLSolver implements Solver {
 
 	@Override
-	public boolean isSatisfiable(List<Clause> clauses, Integer numberOfVariables) {
+	public boolean isSatisfiable(Theory theory) {
+		return isSatisfiable(theory.getClauses(), theory.getNumberOfVariables());
+	}
+
+	@Override
+	public List<Clause> toMinimalDualClauses(Theory theory) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	private boolean isSatisfiable(List<Clause> clauses, Integer numberOfVariables) {
 		
 		unitPropagation(clauses);
 		if(clauses.isEmpty()) return true;
@@ -31,12 +41,6 @@ public class DPLLSolver implements Solver {
 		
 	}
 
-	@Override
-	public List<Clause> toMinimalDualClauses(List<Clause> clauses, Integer numberOfVariables) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
 	private List<Clause> cloneAndAddClauseWithLiteral(List<Clause> clauses, Integer literal) {
 		
 		Clause clause = createClauseFromLiteral(literal);
@@ -213,7 +217,7 @@ public class DPLLSolver implements Solver {
 		
 		Solver solver =  new DPLLSolver();
 		
-		System.out.println(solver.isSatisfiable(theory.getClauses(), theory.getNumberOfVariables()));
+		System.out.println(solver.isSatisfiable(theory));
 		
 	}
 

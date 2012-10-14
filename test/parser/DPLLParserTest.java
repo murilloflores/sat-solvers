@@ -44,7 +44,7 @@ public class DPLLParserTest{
 		
 		DPLLSolver solver =  new DPLLSolver();
 		
-		Assert.assertEquals(expectedResult, solver.isSatisfiable(theory.getClauses(), theory.getNumberOfVariables()));
+		Assert.assertEquals(expectedResult, solver.isSatisfiable(theory));
 		
 	}
 	

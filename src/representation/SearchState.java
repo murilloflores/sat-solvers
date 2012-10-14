@@ -1,35 +1,34 @@
 package representation;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class SearchState {
 
-	private Set<Quantum> quantums;
-	private Set<Quantum> forbiddenQuantums;
-	private List<Clause> gap;
+	private Set<Integer> quantums;
+	private Set<Integer> forbiddenQuantums;
+	private byte[] gap;
 	
 	public SearchState(SearchState searchState){
 		
-		Set<Quantum> clonedQuantums = new HashSet<Quantum>();
-		for(Quantum quantum:searchState.getQuantums()){
+		Set<Integer> clonedQuantums = new HashSet<Integer>();
+		for(Integer quantum:searchState.getQuantums()){
 			clonedQuantums.add(quantum);
 		}
 		
 		this.quantums = clonedQuantums;
 		
-		Set<Quantum> clonedForbiddenQuantums = new HashSet<Quantum>();
-		for(Quantum quantum: searchState.getForbiddenQuantums()){
+		Set<Integer> clonedForbiddenQuantums = new HashSet<Integer>();
+		for(Integer quantum: searchState.getForbiddenQuantums()){
 			clonedForbiddenQuantums.add(quantum);
 		}
 		
 		this.forbiddenQuantums = clonedForbiddenQuantums;
 		
-		List<Clause> clonedGap = new ArrayList<Clause>();
-		for(Clause clause: searchState.getGap()){
-			clonedGap.add(clause);
+		byte[] clonedGap = new byte[searchState.getGap().length];
+		for(int i=0; i<searchState.getGap().length; i++){
+			clonedGap[i] = searchState.getGap()[i];
 		}
 		
 		this.gap = clonedGap;
@@ -37,43 +36,51 @@ public class SearchState {
 	}
 	
 	public SearchState(){
-		this.quantums = new HashSet<Quantum>();
-		this.forbiddenQuantums = new HashSet<Quantum>();
+		this.quantums = new HashSet<Integer>();
+		this.forbiddenQuantums = new HashSet<Integer>();
+	}
+
+	public void addQuantum(Integer quantum){
+		this.quantums.add(quantum);
 	}
 	
-	public void addQuantum(Quantum quantum) {
-		this.quantums.add(quantum);		
+	public void addForbiddenQuantum(Integer quantum){
+		this.forbiddenQuantums.add(quantum);
+	}
+	
+	public Set<Integer> getQuantums() {
+		return quantums;
 	}
 
-	public Set<Quantum> getQuantums() {
-		return this.quantums;
+	public void setQuantums(Set<Integer> quantums) {
+		this.quantums = quantums;
 	}
 
-	public List<Clause> getGap() {
+	public Set<Integer> getForbiddenQuantums() {
+		return forbiddenQuantums;
+	}
+
+	public void setForbiddenQuantums(Set<Integer> forbiddenQuantums) {
+		this.forbiddenQuantums = forbiddenQuantums;
+	}
+
+	public byte[] getGap() {
 		return gap;
 	}
 
-	public void setGap(List<Clause> gap) {
+	public void setGap(byte[] gap) {
 		this.gap = gap;
-	}
-
-	@Override
-	public String toString() {
-		return "SearchState [quantums=" + quantums  + "]";
-	}
-
-	public void addForbiddenQuantum(Quantum quantum) {
-		this.forbiddenQuantums.add(quantum);
-	}
-
-	public Set<Quantum> getForbiddenQuantums() {
-		return forbiddenQuantums;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime
+				* result
+				+ ((forbiddenQuantums == null) ? 0 : forbiddenQuantums
+						.hashCode());
+		result = prime * result + Arrays.hashCode(gap);
 		result = prime * result
 				+ ((quantums == null) ? 0 : quantums.hashCode());
 		return result;
@@ -88,6 +95,13 @@ public class SearchState {
 		if (getClass() != obj.getClass())
 			return false;
 		SearchState other = (SearchState) obj;
+		if (forbiddenQuantums == null) {
+			if (other.forbiddenQuantums != null)
+				return false;
+		} else if (!forbiddenQuantums.equals(other.forbiddenQuantums))
+			return false;
+		if (!Arrays.equals(gap, other.gap))
+			return false;
 		if (quantums == null) {
 			if (other.quantums != null)
 				return false;
@@ -95,5 +109,7 @@ public class SearchState {
 			return false;
 		return true;
 	}
+	
+	
 
 }

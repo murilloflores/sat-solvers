@@ -17,6 +17,14 @@ public class BitWiseUtils {
 		
 	}
 	
+	public static String bitRepresentation(byte[] bytes){
+		String rep = "";
+		for(byte b: bytes){
+			rep = rep+ " " +bitRepresentation(b);
+		}
+		return rep;
+	}
+	
 	public static int countOnes(byte b){
 		
 		byte displayMask = 1;
@@ -44,21 +52,7 @@ public class BitWiseUtils {
 	}
 	
 	public static void main(String[] args) {
-
-		for(int i=0;i<8;i++){
-			byte b = (byte) (Math.pow(2, i));
-			System.out.println(Math.pow(2, i)+ ": "+ bitRepresentation(b) + " - " + countOnes(b));
-		}
-		
-		System.out.println(bitRepresentation((byte) 255)  + " - " + countOnes((byte) 255));
-		System.out.println(bitRepresentation((byte) 27)  + " - " + countOnes((byte) 27));
-		
-		byte[] bytes = new byte[]{27, (byte) 128};
-		System.out.println(countOnes(bytes));
-		
-		byte b = (byte) ((int)(Math.pow(2, 15)) >>> 8);
-		System.out.println(bitRepresentation(b));
-		
+		System.out.println(bitRepresentation(new byte[]{1, -2}));
 	}
 	
 }
