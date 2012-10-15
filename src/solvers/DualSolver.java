@@ -450,6 +450,7 @@ public class DualSolver implements Solver {
 			} 
 		}
 		
+		System.out.println(tabs+"-------");
 		return sucessorsWithFuture;
 	}
 
@@ -734,7 +735,7 @@ public class DualSolver implements Solver {
 	
 		DimacsParser parser = new DimacsParser();
 		
-		Theory theory = parser.parse("examples/dual_example.cnf");
+		Theory theory = parser.parse("/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0110.cnf");
 		
 		DualSolver solver =  new DualSolver();
 		List<Clause> minimalDualClauses = solver.toMinimalDualClauses(theory);
