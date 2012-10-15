@@ -113,11 +113,45 @@ public class DualSolver implements Solver {
 		//step 2
 		sortQuantumsAccordingToHeuristic(possibleExtensions, currentState, quantumTable);
 		
+		String tabs = "";
+		for(int i=1; i<currentState.getQuantums().size(); i++){
+			tabs += "\t";
+		}
+		
+		System.out.print(tabs+"Selected: ");
+		for(Quantum quantum: currentState.getQuantums()){
+			System.out.print(quantum.getLiteral() + ", ");
+		}
+		System.out.println(tabs+"");
+		
+		System.out.print(tabs+"Gap: ");
+		for(Clause clause: currentState.getGap()){
+			for(int i=0; i<this.cnfClauses.size();i++){
+				if(clause.equals(this.cnfClauses.get(i))){
+					System.out.print(i+", ");
+				}
+			}
+		}
+		System.out.println(tabs+"");
+		
+		System.out.print(tabs+"Possible extensions: ");
+		for(Quantum quantum: possibleExtensions){
+			System.out.print(quantum.getLiteral() + ", ");
+		}
+		System.out.println(tabs+"");
+		
+		System.out.print(tabs+"Forbidden quanta: ");
+		for(Quantum quantum: currentState.getForbiddenQuantums()){
+			System.out.print(quantum.getLiteral() + ", ");
+		}
+		System.out.println(tabs+"");
+		
 		//step 3
 		List<Clause> gapConditions = gapConditions(currentState, quantumTable);
 		for(Clause clause: gapConditions){
 			
 			if(!intersects(clause, possibleExtensions)){
+				System.out.println(tabs+"------");
 				return new ArrayList<SearchState>();
 			}
 		}
@@ -160,16 +194,35 @@ public class DualSolver implements Solver {
 			}
 		}
 		
+		System.out.print(tabs+"used: ");
+		for(Quantum quantum: usedQuantums){
+			System.out.print(quantum.getLiteral() + ", ");
+		}
+		System.out.println(tabs+"");
+		
+		System.out.print(tabs+"refused: ");
+		for(Quantum quantum: refused){
+			System.out.print(quantum.getLiteral() + ", ");
+		}
+		System.out.println(tabs+"");
 		
 		List<SearchState> sucessorsWithFuture = new ArrayList<SearchState>();
 		for(SearchState sucessor: sucessors){
 			List<Clause> gapConditionsSucessor = gapConditions(sucessor, quantumTable);
 			if(haveFuture(gapConditionsSucessor, sucessor)){
 				sucessorsWithFuture.add(sucessor);
-			} 
+			} else {
+				System.out.print(tabs+"future less: ");
+
+				for (Quantum quantumFerrado : sucessor.getQuantums()) {
+					System.out.print(quantumFerrado.getLiteral() + ", ");
+				}
+				System.out.println(tabs+"");
+			}
 		}
 		
 		
+		System.out.println(tabs+"-------");
 		return sucessorsWithFuture;
 	}
 
