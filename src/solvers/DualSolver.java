@@ -443,16 +443,15 @@ public class DualSolver implements Solver {
 		
 	}
 
-	private List<Quantum> sortQuantumsAccordingToHeuristic(List<Quantum> quantumsOfClause, SearchState currentState, QuantumTable quantumTable) {
+	private List<Quantum> sortQuantumsAccordingToHeuristic(List<Quantum> extensionsToBeSorted, SearchState currentState, QuantumTable quantumTable) {
 		
-		List<Clause> gap = currentState.getGap();
-		List<Integer> gapCoordinates = getCoordinates(gap);
+		List<Integer> gapCoordinates = getCoordinates(currentState.getGap());
 		
-		for(int i=0; i<quantumsOfClause.size(); i++){
-			for(int j=i+1; j<quantumsOfClause.size(); j++){
+		for(int i=0; i<extensionsToBeSorted.size(); i++){
+			for(int j=i+1; j<extensionsToBeSorted.size(); j++){
 				
-				Quantum quantumI = quantumsOfClause.get(i);
-				Quantum quantumJ = quantumsOfClause.get(j);
+				Quantum quantumI = extensionsToBeSorted.get(i);
+				Quantum quantumJ = extensionsToBeSorted.get(j);
 				
 				Set<Integer> coordinatesInterGapI = new HashSet<Integer>(quantumI.getCoordinates());
 				coordinatesInterGapI.retainAll(gapCoordinates);
@@ -481,25 +480,25 @@ public class DualSolver implements Solver {
 					if(mirrorQuantumJ != null){
 						coordinatesInterGapMirrorJ = new HashSet<Integer>(mirrorQuantumJ.getCoordinates());
 					}
-					coordinatesInterGapMirrorJ.removeAll(gapCoordinates);
+					coordinatesInterGapMirrorJ.retainAll(gapCoordinates);
 					
 					Set<Integer> coordinatesInterGapMirrorIJ = new HashSet<Integer>(coordinatesInterGapMirrorI);
-					coordinatesInterGapMirrorIJ.removeAll(coordinatesInterGapMirrorJ);
+					coordinatesInterGapMirrorIJ.retainAll(coordinatesInterGapMirrorJ);
 					
 					Collection coordinatesMirrorIMinusIJ = CollectionUtils.subtract(coordinatesInterGapMirrorI, coordinatesInterGapMirrorIJ);
 					Collection coordinatesMirrorJMinusIJ = CollectionUtils.subtract(coordinatesInterGapMirrorJ, coordinatesInterGapMirrorIJ);
 					
 					if(!(coordinatesMirrorIMinusIJ.size() > coordinatesMirrorJMinusIJ.size())){
-						quantumsOfClause.set(i, quantumJ);
-						quantumsOfClause.set(j, quantumI);
+						extensionsToBeSorted.set(i, quantumJ);
+						extensionsToBeSorted.set(j, quantumI);
 					}
 					
 					
 				}else{
 					
 					if(!(coordinatesIMinusIJ.size() > coordinatesJMinusIJ.size())){
-						quantumsOfClause.set(i, quantumJ);
-						quantumsOfClause.set(j, quantumI);
+						extensionsToBeSorted.set(i, quantumJ);
+						extensionsToBeSorted.set(j, quantumI);
 					}
 					
 				}
@@ -508,7 +507,7 @@ public class DualSolver implements Solver {
 			}
 		}
 		
-		return quantumsOfClause;
+		return extensionsToBeSorted;
 	}
 
 	private List<Integer> getCoordinates(List<Clause> clauses) {
@@ -585,7 +584,7 @@ public class DualSolver implements Solver {
 	
 		DimacsParser parser = new DimacsParser();
 		
-		List<Clause> clauses = parser.parse("/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0112.cnf");
+		List<Clause> clauses = parser.parse("examples/dual_example.cnf");
 		
 		DualSolver solver =  new DualSolver();
 		List<Clause> minimalDualClauses = solver.toMinimalDualClauses(clauses);
