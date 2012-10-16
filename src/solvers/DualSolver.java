@@ -352,37 +352,37 @@ public class DualSolver implements Solver {
 		//step 2
 		sortQuantumsAccordingToHeuristic(possibleExtensions, currentState);
 		
-//		String tabs = "";
-//		for(int i=1; i<currentState.getQuantums().size(); i++){
-//			tabs += "\t";
-//		}
-//		
-//		System.out.print(tabs+"Selected: ");
-//		for(Integer quantum: currentState.getQuantums()){
-//			System.out.print(quantum + ", ");
-//		}
-//		System.out.println(tabs+"");
-//		
-//		System.out.print(tabs+"Gap: ");
-//		System.out.println(BitWiseUtils.bitRepresentation(currentState.getGap()));
-//		
-//		System.out.print(tabs+"Possible extensions: ");
-//		for(int i=0; i< possibleExtensions.size(); i++){
-//			System.out.print(possibleExtensions.get(i) + ", ");
-//		}
-//		System.out.println(tabs+"");
-//		
-//		System.out.print(tabs+"Forbidden quanta: ");
-//		for(Integer quantum: currentState.getForbiddenQuantums()){
-//			System.out.print(quantum + ", ");
-//		}
-//		System.out.println(tabs+"");
+		String tabs = "";
+		for(int i=1; i<currentState.getQuantums().size(); i++){
+			tabs += "\t";
+		}
+		
+		System.out.print(tabs+"Selected: ");
+		for(Integer quantum: currentState.getQuantums()){
+			System.out.print(quantum + ", ");
+		}
+		System.out.println(tabs+"");
+		
+		System.out.print(tabs+"Gap: ");
+		System.out.println(BitWiseUtils.bitRepresentation(currentState.getGap()));
+		
+		System.out.print(tabs+"Possible extensions: ");
+		for(int i=0; i< possibleExtensions.size(); i++){
+			System.out.print(possibleExtensions.get(i) + ", ");
+		}
+		System.out.println(tabs+"");
+		
+		System.out.print(tabs+"Forbidden quanta: ");
+		for(Integer quantum: currentState.getForbiddenQuantums()){
+			System.out.print(quantum + ", ");
+		}
+		System.out.println(tabs+"");
 		
 		//step 3
 		List<Clause> gapConditions = gapConditions(currentState);
 		for(Clause clause: gapConditions){
 			if(!intersects(clause, possibleExtensions)){
-//				System.out.println(tabs+"------");
+				System.out.println(tabs+"------");
 				return new ArrayList<SearchState>();
 			}
 		}
@@ -424,17 +424,17 @@ public class DualSolver implements Solver {
 			}
 		}
 		
-//		System.out.print(tabs+"used: ");
-//		for(Integer quantum: usedQuantums){
-//			System.out.print(quantum + ", ");
-//		}
-//		System.out.println(tabs+"");
-//		
-//		System.out.print(tabs+"refused: ");
-//		for(Integer quantum: refused){
-//			System.out.print(quantum + ", ");
-//		}
-//		System.out.println(tabs+"");
+		System.out.print(tabs+"used: ");
+		for(Integer quantum: usedQuantums){
+			System.out.print(quantum + ", ");
+		}
+		System.out.println(tabs+"");
+		
+		System.out.print(tabs+"refused: ");
+		for(Integer quantum: refused){
+			System.out.print(quantum + ", ");
+		}
+		System.out.println(tabs+"");
 		
 		List<SearchState> sucessorsWithFuture = new ArrayList<SearchState>();
 		for(SearchState sucessor: sucessors){
@@ -442,16 +442,16 @@ public class DualSolver implements Solver {
 			if(haveFuture(gapConditionsSucessor, sucessor)){
 				sucessorsWithFuture.add(sucessor);
 			} else {
-//				System.out.print(tabs+"future less: ");
-//				
-//				for (Integer quantumFerrado : sucessor.getQuantums()) {
-//					System.out.print(quantumFerrado + ", ");
-//				}
-//				System.out.println(tabs+"");
+				System.out.print(tabs+"future less: ");
+				
+				for (Integer quantumFerrado : sucessor.getQuantums()) {
+					System.out.print(quantumFerrado + ", ");
+				}
+				System.out.println(tabs+"");
 			} 
 		}
 		
-//		System.out.println(tabs+"-------");
+		System.out.println(tabs+"-------");
 		return sucessorsWithFuture;
 	}
 
@@ -701,7 +701,7 @@ public class DualSolver implements Solver {
 		}
 		
 		//fill last one
-		for(int i=0; i<=exp; i++){
+		for(int i=0; i<exp; i++){
 			
 			byte b = (byte) Math.pow(2, i);
 			gap[coordinatesArraySize-1-pos] = (byte) (gap[coordinatesArraySize-1-pos] | b); 
@@ -741,7 +741,7 @@ public class DualSolver implements Solver {
 	
 		DimacsParser parser = new DimacsParser();
 		
-		Theory theory = parser.parse("/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0110.cnf");
+		Theory theory = parser.parse("examples/dual_example.cnf");
 		
 		DualSolver solver =  new DualSolver();
 		List<Clause> minimalDualClauses = solver.toMinimalDualClauses(theory);
