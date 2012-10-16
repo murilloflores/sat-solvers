@@ -161,16 +161,17 @@ public class DualSolver implements Solver {
 
 	private void fillTableForLiteral(int literal) {
 		
+		int quantumTableIndex = getQuantumTableIndex(literal);
+		
 		List<Integer> clausesWithQuantum = getClausesWithQuantum(literal);
 		for(Integer clause: clausesWithQuantum){
 
-			int pos = clause / 8;
-			int piece = coordinatesArraySize - (pos +1);
-
-			byte b = (byte) ((int)(Math.pow(2, clause)) >>> (pos*8));
+			int pos = (coordinatesArraySize -1) - (clause / 8);
+			int exp = clause % 8;
 			
-			int quantumTableIndex = getQuantumTableIndex(literal);
-			quantumTable[quantumTableIndex][piece] = (byte) (quantumTable[quantumTableIndex][piece] | b);
+			byte b = (byte) Math.pow(2, exp);
+			
+			quantumTable[quantumTableIndex][pos] = (byte) (quantumTable[quantumTableIndex][pos] | b);
 			
 		}
 		
@@ -224,7 +225,7 @@ public class DualSolver implements Solver {
 	private byte[] calculateGap(SearchState searchState) {
 
 		byte[] gap = completeGap();
-
+		
 		for(Integer quantum: searchState.getQuantums()){
 			byte[] quantumCoordinates = getCoordinates(quantum);
 			gap = byteArrayXor(gap, quantumCoordinates);
@@ -319,7 +320,7 @@ public class DualSolver implements Solver {
 			
 			Clause clause = theory.getClauses().get(i);
 			
-			byte[] allCoordinates = new byte[coordinatesArraySize]; 
+			byte[] allCoordinates = new byte[coordinatesArraySize];
 			for(Integer literal: clause.getLiterals()){
 				byte[] literalCoordinates = getCoordinates(literal);
 				allCoordinates = byteArrayOr(allCoordinates, literalCoordinates);
@@ -351,37 +352,37 @@ public class DualSolver implements Solver {
 		//step 2
 		sortQuantumsAccordingToHeuristic(possibleExtensions, currentState);
 		
-		String tabs = "";
-		for(int i=1; i<currentState.getQuantums().size(); i++){
-			tabs += "\t";
-		}
-		
-		System.out.print(tabs+"Selected: ");
-		for(Integer quantum: currentState.getQuantums()){
-			System.out.print(quantum + ", ");
-		}
-		System.out.println(tabs+"");
-		
-		System.out.print(tabs+"Gap: ");
-		System.out.println(BitWiseUtils.bitRepresentation(currentState.getGap()));
-		
-		System.out.print(tabs+"Possible extensions: ");
-		for(int i=0; i< possibleExtensions.size(); i++){
-			System.out.print(possibleExtensions.get(i) + ", ");
-		}
-		System.out.println(tabs+"");
-		
-		System.out.print(tabs+"Forbidden quanta: ");
-		for(Integer quantum: currentState.getForbiddenQuantums()){
-			System.out.print(quantum + ", ");
-		}
-		System.out.println(tabs+"");
+//		String tabs = "";
+//		for(int i=1; i<currentState.getQuantums().size(); i++){
+//			tabs += "\t";
+//		}
+//		
+//		System.out.print(tabs+"Selected: ");
+//		for(Integer quantum: currentState.getQuantums()){
+//			System.out.print(quantum + ", ");
+//		}
+//		System.out.println(tabs+"");
+//		
+//		System.out.print(tabs+"Gap: ");
+//		System.out.println(BitWiseUtils.bitRepresentation(currentState.getGap()));
+//		
+//		System.out.print(tabs+"Possible extensions: ");
+//		for(int i=0; i< possibleExtensions.size(); i++){
+//			System.out.print(possibleExtensions.get(i) + ", ");
+//		}
+//		System.out.println(tabs+"");
+//		
+//		System.out.print(tabs+"Forbidden quanta: ");
+//		for(Integer quantum: currentState.getForbiddenQuantums()){
+//			System.out.print(quantum + ", ");
+//		}
+//		System.out.println(tabs+"");
 		
 		//step 3
 		List<Clause> gapConditions = gapConditions(currentState);
 		for(Clause clause: gapConditions){
 			if(!intersects(clause, possibleExtensions)){
-				System.out.println(tabs+"------");
+//				System.out.println(tabs+"------");
 				return new ArrayList<SearchState>();
 			}
 		}
@@ -423,17 +424,17 @@ public class DualSolver implements Solver {
 			}
 		}
 		
-		System.out.print(tabs+"used: ");
-		for(Integer quantum: usedQuantums){
-			System.out.print(quantum + ", ");
-		}
-		System.out.println(tabs+"");
-		
-		System.out.print(tabs+"refused: ");
-		for(Integer quantum: refused){
-			System.out.print(quantum + ", ");
-		}
-		System.out.println(tabs+"");
+//		System.out.print(tabs+"used: ");
+//		for(Integer quantum: usedQuantums){
+//			System.out.print(quantum + ", ");
+//		}
+//		System.out.println(tabs+"");
+//		
+//		System.out.print(tabs+"refused: ");
+//		for(Integer quantum: refused){
+//			System.out.print(quantum + ", ");
+//		}
+//		System.out.println(tabs+"");
 		
 		List<SearchState> sucessorsWithFuture = new ArrayList<SearchState>();
 		for(SearchState sucessor: sucessors){
@@ -441,16 +442,16 @@ public class DualSolver implements Solver {
 			if(haveFuture(gapConditionsSucessor, sucessor)){
 				sucessorsWithFuture.add(sucessor);
 			} else {
-				System.out.print(tabs+"future less: ");
-				
-				for (Integer quantumFerrado : sucessor.getQuantums()) {
-					System.out.print(quantumFerrado + ", ");
-				}
-				System.out.println(tabs+"");
+//				System.out.print(tabs+"future less: ");
+//				
+//				for (Integer quantumFerrado : sucessor.getQuantums()) {
+//					System.out.print(quantumFerrado + ", ");
+//				}
+//				System.out.println(tabs+"");
 			} 
 		}
 		
-		System.out.println(tabs+"-------");
+//		System.out.println(tabs+"-------");
 		return sucessorsWithFuture;
 	}
 
@@ -690,16 +691,21 @@ public class DualSolver implements Solver {
 	
 	private byte[] completeGap() {
 		
-		int sum = 0;
-		for(int i=0; i<this.theory.getClauses().size(); i++){
-			sum += (int) Math.pow(2, i);
+		byte[] gap = new byte[coordinatesArraySize];
+		int pos = theory.getClauses().size() / 8;
+		int exp = theory.getClauses().size() % 8;
+		
+		// fill begin with zeros
+		for(int i=0; i<pos; i++){
+			gap[coordinatesArraySize-1-i] = (byte) 255;
 		}
 		
-		byte[] gap = new byte[coordinatesArraySize];
-		int desloc = 0;
-		for(int i=coordinatesArraySize-1 ; i>=0; i--){
-			gap[i] = (byte) (sum >> 8*desloc);
-			desloc++;
+		//fill last one
+		for(int i=0; i<=exp; i++){
+			
+			byte b = (byte) Math.pow(2, i);
+			gap[coordinatesArraySize-1-pos] = (byte) (gap[coordinatesArraySize-1-pos] | b); 
+			
 		}
 		
 		return gap;
