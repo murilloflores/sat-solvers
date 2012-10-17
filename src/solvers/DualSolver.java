@@ -86,10 +86,6 @@ public class DualSolver implements Solver {
 			openedStates.remove(currentState);
 			closedStates.add(currentState);
 			
-			if(loops==34){
-				System.out.println("peera");
-			}
-			
 			List<SearchState> neighbors = calculateNeighbors(currentState);
 			
 			for(SearchState state: neighbors){
@@ -354,42 +350,42 @@ public class DualSolver implements Solver {
 		//step 1
 		List<Integer> possibleExtensions = determinePossibleExtensions(currentState);
 		
-		System.out.println("First possible extensions: "+possibleExtensions);
+//		System.out.println("First possible extensions: "+possibleExtensions);
 		
 		//step 2
 		sortQuantumsAccordingToHeuristic(possibleExtensions, currentState);
 		
-		String tabs = "";
-		for(int i=1; i<currentState.getQuantums().size(); i++){
-			tabs += "\t";
-		}
-		
-		System.out.print(tabs+"Selected: ");
-		for(Integer quantum: currentState.getQuantums()){
-			System.out.print(quantum + ", ");
-		}
-		System.out.println(tabs+"");
-		
-		System.out.print(tabs+"Gap: ");
-		System.out.println(BitWiseUtils.bitRepresentation(currentState.getGap()));
-		
-		System.out.print(tabs+"Possible extensions: ");
-		for(int i=0; i< possibleExtensions.size(); i++){
-			System.out.print(possibleExtensions.get(i) + ", ");
-		}
-		System.out.println(tabs+"");
-		
-		System.out.print(tabs+"Forbidden quanta: ");
-		for(Integer quantum: currentState.getForbiddenQuantums()){
-			System.out.print(quantum + ", ");
-		}
-		System.out.println(tabs+"");
+//		String tabs = "";
+//		for(int i=1; i<currentState.getQuantums().size(); i++){
+//			tabs += "\t";
+//		}
+//		
+//		System.out.print(tabs+"Selected: ");
+//		for(Integer quantum: currentState.getQuantums()){
+//			System.out.print(quantum + ", ");
+//		}
+//		System.out.println(tabs+"");
+//		
+//		System.out.print(tabs+"Gap: ");
+//		System.out.println(BitWiseUtils.bitRepresentation(currentState.getGap()));
+//		
+//		System.out.print(tabs+"Possible extensions: ");
+//		for(int i=0; i< possibleExtensions.size(); i++){
+//			System.out.print(possibleExtensions.get(i) + ", ");
+//		}
+//		System.out.println(tabs+"");
+//		
+//		System.out.print(tabs+"Forbidden quanta: ");
+//		for(Integer quantum: currentState.getForbiddenQuantums()){
+//			System.out.print(quantum + ", ");
+//		}
+//		System.out.println(tabs+"");
 		
 		//step 3
 		List<Clause> gapConditions = gapConditions(currentState);
 		for(Clause clause: gapConditions){
 			if(!intersects(clause, possibleExtensions)){
-				System.out.println(tabs+"------");
+//				System.out.println(tabs+"------");
 				return new ArrayList<SearchState>();
 			}
 		}
@@ -431,17 +427,17 @@ public class DualSolver implements Solver {
 			}
 		}
 		
-		System.out.print(tabs+"used: ");
-		for(Integer quantum: usedQuantums){
-			System.out.print(quantum + ", ");
-		}
-		System.out.println(tabs+"");
-		
-		System.out.print(tabs+"refused: ");
-		for(Integer quantum: refused){
-			System.out.print(quantum + ", ");
-		}
-		System.out.println(tabs+"");
+//		System.out.print(tabs+"used: ");
+//		for(Integer quantum: usedQuantums){
+//			System.out.print(quantum + ", ");
+//		}
+//		System.out.println(tabs+"");
+//		
+//		System.out.print(tabs+"refused: ");
+//		for(Integer quantum: refused){
+//			System.out.print(quantum + ", ");
+//		}
+//		System.out.println(tabs+"");
 		
 		List<SearchState> sucessorsWithFuture = new ArrayList<SearchState>();
 		for(SearchState sucessor: sucessors){
@@ -449,16 +445,16 @@ public class DualSolver implements Solver {
 			if(haveFuture(gapConditionsSucessor, sucessor)){
 				sucessorsWithFuture.add(sucessor);
 			} else {
-				System.out.print(tabs+"future less: ");
-				
-				for (Integer quantumFerrado : sucessor.getQuantums()) {
-					System.out.print(quantumFerrado + ", ");
-				}
-				System.out.println(tabs+"");
+//				System.out.print(tabs+"future less: ");
+//				
+//				for (Integer quantumFerrado : sucessor.getQuantums()) {
+//					System.out.print(quantumFerrado + ", ");
+//				}
+//				System.out.println(tabs+"");
 			} 
 		}
 		
-		System.out.println(tabs+"-------");
+//		System.out.println(tabs+"-------");
 		return sucessorsWithFuture;
 	}
 
@@ -644,8 +640,6 @@ public class DualSolver implements Solver {
 			
 			byte[] exclusiveCoordinatesOfQuantum = getExclusiveCoordinatesFor(currentState, quantum);
 
-			System.out.println(quantum+"->"+BitWiseUtils.integerRepresentation(exclusiveCoordinatesOfQuantum));
-			
 			boolean equal = true;
 			for(int i=0; i<coordinatesArraySize; i++){
 				byte comparison = (byte) (exclusiveCoordinatesOfQuantum[i] & quantumBeingAddedCoordinates[i]);
@@ -664,23 +658,6 @@ public class DualSolver implements Solver {
 
 
 	private byte[] getExclusiveCoordinatesFor(SearchState currentState, Integer quantum) {
-		
-//		byte[] coordinates = getCoordinates(quantum);
-//		System.out.println(quantum+"->"+BitWiseUtils.bitRepresentation(coordinates));
-//		
-//		for(Integer currentStateQuantum: currentState.getQuantums()){
-//			if(currentStateQuantum.equals(quantum)){
-//				continue;
-//			}
-//			
-//			System.out.println(currentStateQuantum+"->"+BitWiseUtils.bitRepresentation(getCoordinates(currentStateQuantum)));
-//			coordinates = byteArrayXor(coordinates, getCoordinates(currentStateQuantum));
-//			System.out.println("all->"+BitWiseUtils.bitRepresentation(coordinates));
-//		}
-//		
-//		System.out.println("and->"+BitWiseUtils.bitRepresentation(byteArrayAnd(coordinates, getCoordinates(quantum))));
-//		
-//		coordinates = byteArrayAnd(coordinates, getCoordinates(quantum));
 		
 		byte[] allCoordinates = new byte[coordinatesArraySize];
 		for(Integer currentStateQuantum: currentState.getQuantums()){
@@ -777,7 +754,7 @@ public class DualSolver implements Solver {
 	
 		DimacsParser parser = new DimacsParser();
 		
-		Theory theory = parser.parse("/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0118.cnf");
+		Theory theory = parser.parse("/home/murillo/Dropbox/tcc/satlib/uf100-430/uf100-0110.cnf");
 		
 //		List<Integer> quantums = Arrays.asList(-20, -12, -10, -8, -2, 1, 4, 5, 6, 9, 11, 13, 15, 16, 17);
 //
