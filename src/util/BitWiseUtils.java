@@ -1,5 +1,8 @@
 package util;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class BitWiseUtils {
 
 	public static String bitRepresentation(byte b){
@@ -51,9 +54,33 @@ public class BitWiseUtils {
 		
 	}
 	
+	public static List<Integer> integerRepresentation(byte[] coordinates){
+		
+		ArrayList<Integer> coordinatesIntegers = new ArrayList<Integer>();
+		
+		for(int i=coordinates.length-1; i>=0; i--){
+			
+			for(int j=0;j<8;j++){
+				
+				byte b = (byte) Math.pow(2, j);
+				byte comparison = (byte) (coordinates[i] & b);
+				
+				if(countOnes(comparison) > 0){
+					int pos = (((coordinates.length-1 - i)*8) -1) + (j+1);
+					coordinatesIntegers.add(pos);
+				}
+				
+			}
+			
+		}
+		
+		return coordinatesIntegers;
+		
+	}
+	
 	public static void main(String[] args) {
 //		System.out.println(bitRepresentation((byte)255));
-		System.out.println(bitRepresentation(new byte[]{3,-1}));
+//		System.out.println(bitRepresentation(new byte[]{0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0}));
 	}
 	
 }

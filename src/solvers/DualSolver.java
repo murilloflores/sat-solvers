@@ -2,6 +2,7 @@ package solvers;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -84,6 +85,10 @@ public class DualSolver implements Solver {
 			
 			openedStates.remove(currentState);
 			closedStates.add(currentState);
+			
+			if(loops==34){
+				System.out.println("peera");
+			}
 			
 			List<SearchState> neighbors = calculateNeighbors(currentState);
 			
@@ -349,6 +354,8 @@ public class DualSolver implements Solver {
 		//step 1
 		List<Integer> possibleExtensions = determinePossibleExtensions(currentState);
 		
+		System.out.println("First possible extensions: "+possibleExtensions);
+		
 		//step 2
 		sortQuantumsAccordingToHeuristic(possibleExtensions, currentState);
 		
@@ -497,14 +504,19 @@ public class DualSolver implements Solver {
 	
 	private boolean intersects(Integer clause, Collection<Integer> quantums) {
 
-		int pos = clause / 8;
-		int piece = coordinatesArraySize - (pos +1);
-		byte b = (byte) ((int)(Math.pow(2, clause)) >>> (pos*8));
+//		int pos = clause / 8;
+//		int piece = coordinatesArraySize - (pos +1);
+//		byte b = (byte) ((int)(Math.pow(2, clause)) >>> (pos*8));
+		
+		int pos = (coordinatesArraySize -1) - (clause / 8);
+		int exp = clause % 8;
+		
+		byte b = (byte) Math.pow(2, exp);
 		
 		for(Integer quantum: quantums){
 			
 			byte[] quantumCoordinates = getCoordinates(quantum);
-			byte intersec = (byte) (quantumCoordinates[piece] & b);
+			byte intersec = (byte) (quantumCoordinates[pos] & b);
 			if(BitWiseUtils.countOnes(intersec) > 0) return true;
 			
 		}
@@ -528,12 +540,17 @@ public class DualSolver implements Solver {
 		
 		for(int i=0; i<clauses.size(); i++){
 			
-			int pos = i / 8;
-			int piece = coordinatesArraySize - (pos +1);
-
-			byte b = (byte) ((int)(Math.pow(2, i)) >>> (pos*8));
+//			int pos = i / 8;
+//			int piece = coordinatesArraySize - (pos +1);
+//
+//			byte b = (byte) ((int)(Math.pow(2, i)) >>> (pos*8));
 			
-			byte b2 = (byte) (gap[piece] & b);
+			int pos = (coordinatesArraySize -1) - (i / 8);
+			int exp = i % 8;
+			
+			byte b = (byte) Math.pow(2, exp);
+			
+			byte b2 = (byte) (gap[pos] & b);
 			
 			if(b2 == b){
 				clausesInGap.add(i);
@@ -625,12 +642,14 @@ public class DualSolver implements Solver {
 		
 		for(Integer quantum: currentState.getQuantums()){
 			
-			byte[] exclusiveCoordinatesFor = getExclusiveCoordinatesFor(currentState, quantum);
+			byte[] exclusiveCoordinatesOfQuantum = getExclusiveCoordinatesFor(currentState, quantum);
+
+			System.out.println(quantum+"->"+BitWiseUtils.integerRepresentation(exclusiveCoordinatesOfQuantum));
 			
 			boolean equal = true;
-			for(int i=0; i< coordinatesArraySize; i++){
-				byte comparison = (byte) (quantumBeingAddedCoordinates[i] & exclusiveCoordinatesFor[i]);
-				if (!(comparison == exclusiveCoordinatesFor[i])){
+			for(int i=0; i<coordinatesArraySize; i++){
+				byte comparison = (byte) (exclusiveCoordinatesOfQuantum[i] & quantumBeingAddedCoordinates[i]);
+				if (!(comparison == exclusiveCoordinatesOfQuantum[i])){
 					equal = false;
 					break;
 				}
@@ -646,18 +665,35 @@ public class DualSolver implements Solver {
 
 	private byte[] getExclusiveCoordinatesFor(SearchState currentState, Integer quantum) {
 		
-		byte[] coordinates = getCoordinates(quantum);
+//		byte[] coordinates = getCoordinates(quantum);
+//		System.out.println(quantum+"->"+BitWiseUtils.bitRepresentation(coordinates));
+//		
+//		for(Integer currentStateQuantum: currentState.getQuantums()){
+//			if(currentStateQuantum.equals(quantum)){
+//				continue;
+//			}
+//			
+//			System.out.println(currentStateQuantum+"->"+BitWiseUtils.bitRepresentation(getCoordinates(currentStateQuantum)));
+//			coordinates = byteArrayXor(coordinates, getCoordinates(currentStateQuantum));
+//			System.out.println("all->"+BitWiseUtils.bitRepresentation(coordinates));
+//		}
+//		
+//		System.out.println("and->"+BitWiseUtils.bitRepresentation(byteArrayAnd(coordinates, getCoordinates(quantum))));
+//		
+//		coordinates = byteArrayAnd(coordinates, getCoordinates(quantum));
 		
+		byte[] allCoordinates = new byte[coordinatesArraySize];
 		for(Integer currentStateQuantum: currentState.getQuantums()){
-			if(currentStateQuantum.equals(quantum)){
-				continue;
+			if(!currentStateQuantum.equals(quantum)){
+				allCoordinates = byteArrayOr(allCoordinates, getCoordinates(currentStateQuantum));
 			}
-			
-			coordinates = byteArrayXor(coordinates, getCoordinates(currentStateQuantum));
+				
 		}
 		
-		coordinates = byteArrayAnd(coordinates, getCoordinates(quantum));
-		return coordinates;
+		byte[] exclusiveCoordinates = byteArrayXor(getCoordinates(quantum), allCoordinates);
+		exclusiveCoordinates = byteArrayAnd(exclusiveCoordinates, getCoordinates(quantum));
+		
+		return exclusiveCoordinates;
 	}
 
 	// ByteArray operations
@@ -741,7 +777,28 @@ public class DualSolver implements Solver {
 	
 		DimacsParser parser = new DimacsParser();
 		
-		Theory theory = parser.parse("examples/dual_example.cnf");
+		Theory theory = parser.parse("/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0118.cnf");
+		
+//		List<Integer> quantums = Arrays.asList(-20, -12, -10, -8, -2, 1, 4, 5, 6, 9, 11, 13, 15, 16, 17);
+//
+//		for(Integer quantum: quantums){
+//
+//			System.out.print("map.put("+quantum+", Arrays.asList(");
+//			
+//			String list = "";
+//			for(int i=0; i<theory.getClauses().size();i++){
+//				Clause clause = theory.getClauses().get(i);
+//				
+//				if(clause.containsLiteral(quantum)){
+//					list = list + i+",";
+//				}
+//			}
+//			
+//			System.out.print(list.substring(0, list.length()-1));
+//			System.out.println("));");
+//		}
+//		
+//		System.exit(0);
 		
 		DualSolver solver =  new DualSolver();
 		List<Clause> minimalDualClauses = solver.toMinimalDualClauses(theory);
