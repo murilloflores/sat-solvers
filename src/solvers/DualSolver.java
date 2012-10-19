@@ -402,10 +402,9 @@ public class DualSolver implements Solver {
 			possibleNextState.addForbiddenQuantum(mirrorQuantum);
 			removeFromGapClausesOfQuantum(possibleNextState, quantum);
 			
-			List<Clause> possibleNextStateGapConditions = gapConditions(possibleNextState);
-			
-			if(gapConditionsAreSatisfied(possibleNextStateGapConditions, currentState)
-					&& isExclusiveCoordinateCompatible(currentState, quantum)){
+			if(isExclusiveCoordinateCompatible(currentState, quantum) 
+					&& gapConditionsAreSatisfied(gapConditions(possibleNextState), currentState)
+					){
 				
 				for(Integer forbiddenQuantum:usedQuantums){
 					possibleNextState.addForbiddenQuantum(forbiddenQuantum);
@@ -473,7 +472,8 @@ public class DualSolver implements Solver {
 
 		List<Clause> gapConditions = new ArrayList<Clause>();
 
-		Set<Integer> mirrorQuantums = calculateMirror(state.getQuantums());
+//		Set<Integer> mirrorQuantums = calculateMirror(state.getQuantums());
+		Set<Integer> mirrorQuantums = state.getForbiddenQuantums();
 		List<Integer> clausesInGap = getClausesFromGap(state.getGap());
 		
 		for (Integer clause : clausesInGap) {
@@ -500,10 +500,6 @@ public class DualSolver implements Solver {
 	
 	private boolean intersects(Integer clause, Collection<Integer> quantums) {
 
-//		int pos = clause / 8;
-//		int piece = coordinatesArraySize - (pos +1);
-//		byte b = (byte) ((int)(Math.pow(2, clause)) >>> (pos*8));
-		
 		int pos = (coordinatesArraySize -1) - (clause / 8);
 		int exp = clause % 8;
 		
@@ -754,7 +750,7 @@ public class DualSolver implements Solver {
 	
 		DimacsParser parser = new DimacsParser();
 		
-		Theory theory = parser.parse("/home/murillo/Dropbox/tcc/satlib/uf100-430/uf100-0110.cnf");
+		Theory theory = parser.parse("/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0110.cnf");
 		
 //		List<Integer> quantums = Arrays.asList(-20, -12, -10, -8, -2, 1, 4, 5, 6, 9, 11, 13, 15, 16, 17);
 //
