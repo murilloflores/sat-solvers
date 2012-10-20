@@ -2,7 +2,6 @@ package solvers;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -19,6 +18,7 @@ public class DualSolver implements Solver {
 	private Theory theory;
 	private byte[][] quantumTable;
 	private int coordinatesArraySize;
+	private long totalTimeOfRemoving;
 	
 	public boolean isSatisfiable(Theory theory){
 		List<SearchState> finalStates = calculateFinalStates(theory, true);
@@ -28,10 +28,11 @@ public class DualSolver implements Solver {
 	@Override
 	public List<Clause> toMinimalDualClauses(Theory theory) {
 		
+		this.totalTimeOfRemoving = 0;
 
 		List<Clause> minimalDualClauses = new ArrayList<Clause>();
 		List<SearchState> finalStates = calculateFinalStates(theory, false);
-
+		System.out.println("total tile elapse:"+this.totalTimeOfRemoving);
 		for(SearchState state : finalStates){
 			List<Integer> literals = new ArrayList<Integer>();
 			Set<Integer> quantums = state.getQuantums();
@@ -477,8 +478,8 @@ public class DualSolver implements Solver {
 		List<Integer> clausesInGap = getClausesFromGap(state.getGap());
 		
 		for (Integer clause : clausesInGap) {
-			if (!intersects(clause, mirrorQuantums))
-				continue;
+//			if (!intersects(clause, mirrorQuantums))
+//				continue;
 
 			Clause clone = new Clause(theory.getClauses().get(clause));
 			removeLiteralsOfQuantumsFromClause(mirrorQuantums, clone);
@@ -490,9 +491,15 @@ public class DualSolver implements Solver {
 	}
 	
 	private void removeLiteralsOfQuantumsFromClause(Set<Integer> mirrorQuantumLiterals, Clause clause) {
+		long begin = System.currentTimeMillis();
 		for (Integer literal : mirrorQuantumLiterals) {
 			clause.removeLiteral(literal);
 		}
+		long end = System.currentTimeMillis();
+		long elapsed = end-begin;
+		
+		this.totalTimeOfRemoving += elapsed;
+		
 	}
 	
 	
@@ -749,8 +756,11 @@ public class DualSolver implements Solver {
 	public static void main(String[] args) throws IOException {
 	
 		DimacsParser parser = new DimacsParser();
+
+		String[] theories = new String[] {"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0110.cnf", "/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0119.cnf",
+											"/home/murillo/Dropbox/tcc/satlib/uf75-325/uf75-019.cnf"};
 		
-		Theory theory = parser.parse("/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0110.cnf");
+		Theory theory = parser.parse(theories[0]);
 		
 //		List<Integer> quantums = Arrays.asList(-20, -12, -10, -8, -2, 1, 4, 5, 6, 9, 11, 13, 15, 16, 17);
 //
@@ -774,6 +784,7 @@ public class DualSolver implements Solver {
 //		System.exit(0);
 		
 		DualSolver solver =  new DualSolver();
+		
 		List<Clause> minimalDualClauses = solver.toMinimalDualClauses(theory);
 		System.out.println("Size: "+minimalDualClauses.size());
 		System.out.println(minimalDualClauses);
