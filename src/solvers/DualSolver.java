@@ -438,23 +438,16 @@ public class DualSolver implements Solver {
 //		}
 //		System.out.println(tabs+"");
 		
-		List<SearchState> sucessorsWithFuture = new ArrayList<SearchState>();
-		for(SearchState sucessor: sucessors){
-			List<Clause> gapConditionsSucessor = gapConditions(sucessor);
-			if(haveFuture(gapConditionsSucessor, sucessor)){
-				sucessorsWithFuture.add(sucessor);
-			} else {
-//				System.out.print(tabs+"future less: ");
-//				
-//				for (Integer quantumFerrado : sucessor.getQuantums()) {
-//					System.out.print(quantumFerrado + ", ");
-//				}
-//				System.out.println(tabs+"");
-			} 
-		}
+//		List<SearchState> sucessorsWithFuture = new ArrayList<SearchState>();
+//		for(SearchState sucessor: sucessors){
+//			List<Clause> gapConditionsSucessor = gapConditions(sucessor);
+//			if(haveFuture(gapConditionsSucessor, sucessor)){
+//				sucessorsWithFuture.add(sucessor);
+//			} 
+//		}
+//		return sucessorsWithFuture;
 		
-//		System.out.println(tabs+"-------");
-		return sucessorsWithFuture;
+		return sucessors;
 	}
 
 	
@@ -472,13 +465,13 @@ public class DualSolver implements Solver {
 
 		List<Clause> gapConditions = new ArrayList<Clause>();
 
-//		Set<Integer> mirrorQuantums = calculateMirror(state.getQuantums());
-		Set<Integer> mirrorQuantums = state.getForbiddenQuantums();
+		Set<Integer> mirrorQuantums = calculateMirror(state.getQuantums());
+//		Set<Integer> mirrorQuantums = state.getForbiddenQuantums();
 		List<Integer> clausesInGap = getClausesFromGap(state.getGap());
 		
 		for (Integer clause : clausesInGap) {
-//			if (!intersects(clause, mirrorQuantums))
-//				continue;
+			if (!intersects(clause, mirrorQuantums))
+				continue;
 
 			Clause clone = new Clause(theory.getClauses().get(clause));
 			removeLiteralsOfQuantumsFromClause(mirrorQuantums, clone);
@@ -750,27 +743,31 @@ public class DualSolver implements Solver {
 		
 		DimacsParser parser = new DimacsParser();
 
-		String[] theories = new String[] {"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0110.cnf",
-											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0111.cnf",
-											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0112.cnf",
-											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0113.cnf",
-											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0114.cnf",
-											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0115.cnf",
-											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0116.cnf",
-											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0117.cnf",
-											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0118.cnf",
-											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0119.cnf"};
+//		String[] theories = new String[] {
+//											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0110.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0111.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0112.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0113.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0114.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0115.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0116.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0117.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0118.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0119.cnf"
+//										};
 
-//		String[] theories = new String[] {"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0110.cnf",
-//											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0111.cnf",
-//											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0112.cnf",
-//											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0113.cnf",
-//											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0114.cnf",
-//											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0115.cnf",
-//											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0116.cnf",
-//											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0117.cnf",
-//											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0118.cnf",
-//											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0119.cnf"};
+		String[] theories = new String[] {
+											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0110.cnf",
+											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0111.cnf",
+											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0112.cnf",
+											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0113.cnf",
+											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0114.cnf",
+											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0115.cnf",
+											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0116.cnf",
+											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0117.cnf",
+											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0118.cnf",
+											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0119.cnf"
+										};
 		
 //		String[] theories = new String[] {	"/home/murillo/Dropbox/tcc/satlib/uf75-325/uf75-010.cnf",
 //				 							"/home/murillo/Dropbox/tcc/satlib/uf75-325/uf75-011.cnf",
