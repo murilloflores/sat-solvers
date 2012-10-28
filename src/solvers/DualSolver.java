@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import core.MemoryAnalyzer;
+
 import parser.DimacsParser;
 import representation.Clause;
 import representation.SearchState;
@@ -800,8 +802,18 @@ public class DualSolver implements Solver {
 			System.out.print(t.substring(41)+"| ");
 			
 			Theory theory = parser.parse(t);
+			
+			MemoryAnalyzer memoryAnalyzer = new MemoryAnalyzer();
+			Thread thread = new Thread(memoryAnalyzer);
+			thread.start();
+			
 			List<Clause> minimalDualClauses = solver.toMinimalDualClauses(theory);
-			System.out.println(" | "+minimalDualClauses.size());
+			
+			memoryAnalyzer.stop();
+			thread.interrupt();
+			
+			System.out.println(" | "+((memoryAnalyzer.maxUsedMemory()/1024) / 1024)+" | "+minimalDualClauses.size());
+			System.gc();
 		}
 		
 	}
