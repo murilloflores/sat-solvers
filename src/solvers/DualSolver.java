@@ -18,7 +18,6 @@ public class DualSolver implements Solver {
 	private Theory theory;
 	private byte[][] quantumTable;
 	private int coordinatesArraySize;
-	private long totalTimeOfRemoving;
 	
 	public boolean isSatisfiable(Theory theory){
 		List<SearchState> finalStates = calculateFinalStates(theory, true);
@@ -28,11 +27,9 @@ public class DualSolver implements Solver {
 	@Override
 	public List<Clause> toMinimalDualClauses(Theory theory) {
 		
-		this.totalTimeOfRemoving = 0;
 
 		List<Clause> minimalDualClauses = new ArrayList<Clause>();
 		List<SearchState> finalStates = calculateFinalStates(theory, false);
-		System.out.println("total tile elapse:"+this.totalTimeOfRemoving);
 		for(SearchState state : finalStates){
 			List<Integer> literals = new ArrayList<Integer>();
 			Set<Integer> quantums = state.getQuantums();
@@ -96,10 +93,10 @@ public class DualSolver implements Solver {
 		}
 		
 		long end = System.currentTimeMillis();
-		System.out.print((timeFirst-begin));
+		System.out.print(((timeFirst-begin)/10));
 		System.out.print(" | "+(loopsFirst));
-		System.out.print(" | "+(end-begin));
-		System.out.println(" | "+(loops));
+		System.out.print(" | "+((end-begin) / 10));
+		System.out.print(" | "+(loops));
 		
 		return finalStates;
 	}
@@ -491,15 +488,9 @@ public class DualSolver implements Solver {
 	}
 	
 	private void removeLiteralsOfQuantumsFromClause(Set<Integer> mirrorQuantumLiterals, Clause clause) {
-		long begin = System.currentTimeMillis();
 		for (Integer literal : mirrorQuantumLiterals) {
 			clause.removeLiteral(literal);
 		}
-		long end = System.currentTimeMillis();
-		long elapsed = end-begin;
-		
-		this.totalTimeOfRemoving += elapsed;
-		
 	}
 	
 	
@@ -754,41 +745,65 @@ public class DualSolver implements Solver {
 	// Main
 	
 	public static void main(String[] args) throws IOException {
-	
+		
 		DimacsParser parser = new DimacsParser();
 
-		String[] theories = new String[] {"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0110.cnf", "/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0119.cnf",
-											"/home/murillo/Dropbox/tcc/satlib/uf75-325/uf75-019.cnf"};
-		
-		Theory theory = parser.parse(theories[0]);
-		
-//		List<Integer> quantums = Arrays.asList(-20, -12, -10, -8, -2, 1, 4, 5, 6, 9, 11, 13, 15, 16, 17);
-//
-//		for(Integer quantum: quantums){
-//
-//			System.out.print("map.put("+quantum+", Arrays.asList(");
-//			
-//			String list = "";
-//			for(int i=0; i<theory.getClauses().size();i++){
-//				Clause clause = theory.getClauses().get(i);
-//				
-//				if(clause.containsLiteral(quantum)){
-//					list = list + i+",";
-//				}
-//			}
-//			
-//			System.out.print(list.substring(0, list.length()-1));
-//			System.out.println("));");
-//		}
-//		
-//		System.exit(0);
-		
-		DualSolver solver =  new DualSolver();
-		
-		List<Clause> minimalDualClauses = solver.toMinimalDualClauses(theory);
-		System.out.println("Size: "+minimalDualClauses.size());
-		System.out.println(minimalDualClauses);
+		String[] theories = new String[] {"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0110.cnf",
+											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0111.cnf",
+											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0112.cnf",
+											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0113.cnf",
+											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0114.cnf",
+											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0115.cnf",
+											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0116.cnf",
+											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0117.cnf",
+											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0118.cnf",
+											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0119.cnf"};
 
+//		String[] theories = new String[] {"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0110.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0111.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0112.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0113.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0114.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0115.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0116.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0117.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0118.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0119.cnf"};
+		
+//		String[] theories = new String[] {	"/home/murillo/Dropbox/tcc/satlib/uf75-325/uf75-010.cnf",
+//				 							"/home/murillo/Dropbox/tcc/satlib/uf75-325/uf75-011.cnf",
+//				 							"/home/murillo/Dropbox/tcc/satlib/uf75-325/uf75-012.cnf",
+//				 							"/home/murillo/Dropbox/tcc/satlib/uf75-325/uf75-013.cnf",
+//				 							"/home/murillo/Dropbox/tcc/satlib/uf75-325/uf75-014.cnf",
+//				 							"/home/murillo/Dropbox/tcc/satlib/uf75-325/uf75-015.cnf",
+//				 							"/home/murillo/Dropbox/tcc/satlib/uf75-325/uf75-016.cnf",
+//				 							"/home/murillo/Dropbox/tcc/satlib/uf75-325/uf75-017.cnf",
+//				 							"/home/murillo/Dropbox/tcc/satlib/uf75-325/uf75-018.cnf",
+//				 							"/home/murillo/Dropbox/tcc/satlib/uf75-325/uf75-019.cnf"};
+		
+		
+//		String[] theories = new String[] {	"/home/murillo/Dropbox/tcc/satlib/uf100-430/uf100-0110.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf100-430/uf100-0111.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf100-430/uf100-0112.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf100-430/uf100-0113.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf100-430/uf100-0114.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf100-430/uf100-0115.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf100-430/uf100-0116.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf100-430/uf100-0117.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf100-430/uf100-0118.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf100-430/uf100-0119.cnf"};
+
+		DualSolver solver =  new DualSolver();
+
+		for(String t: theories){
+			
+			System.out.print(t.substring(41)+"| ");
+			
+			Theory theory = parser.parse(t);
+			List<Clause> minimalDualClauses = solver.toMinimalDualClauses(theory);
+			System.out.println(" | "+minimalDualClauses.size());
+		}
+		
 	}
 
 }
