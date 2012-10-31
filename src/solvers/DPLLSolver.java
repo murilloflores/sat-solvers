@@ -16,6 +16,8 @@ import representation.Clause;
 
 public class DPLLSolver implements Solver {
 
+	private int loops;
+	
 	@Override
 	public boolean isSatisfiable(List<Clause> clauses) {
 		
@@ -60,6 +62,8 @@ public class DPLLSolver implements Solver {
 	}
 	
 	private Set<Set<Integer>> allResultsDpll(List<Clause> clauses){
+		
+		this.loops++;
 		
 		Set<Set<Integer>> resultList = new HashSet<Set<Integer>>();
 
@@ -107,7 +111,12 @@ public class DPLLSolver implements Solver {
 		
 		List<Clause> minimalDualClause = new ArrayList<Clause>();
 		
+		this.loops = 0;
+		long begin = System.currentTimeMillis();
 		Set<Set<Integer>> results = allResultsDpll(clone(clauses));
+		long end = System.currentTimeMillis();
+		
+		System.out.print("| "+this.loops+" | "+((end-begin) /10) );
 		
 		for(Set<Integer> result: results){
 			if(isValidDualClause(result, clauses)){
@@ -343,9 +352,10 @@ public class DPLLSolver implements Solver {
 		
 		DimacsParser parser = new DimacsParser();
 		DPLLSolver solver =  new DPLLSolver();
+		System.out.print("dual_example.cnf ");
 		List<Clause> clauses = parser.parse("examples/dual_example.cnf");
 		List<Clause> minimalDualClauses = solver.toMinimalDualClauses(clauses);
-		System.out.println(minimalDualClauses.size());	
+		System.out.println(" | "+minimalDualClauses.size());	
 	}
 
 }
