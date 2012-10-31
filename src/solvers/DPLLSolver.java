@@ -341,15 +341,11 @@ public class DPLLSolver implements Solver {
 	
 	public static void main(String[] args) throws IOException {
 		
-		System.out.println(System.currentTimeMillis());
 		DimacsParser parser = new DimacsParser();
-		List<Clause> clauses = parser.parse("examples/dual_example.cnf");
-		
 		DPLLSolver solver =  new DPLLSolver();
-		
-		System.out.println(solver.toMinimalDualClauses(clauses));
-		System.out.println(System.currentTimeMillis());
-		
+		List<Clause> clauses = parser.parse("examples/dual_example.cnf");
+		List<Clause> minimalDualClauses = solver.toMinimalDualClauses(clauses);
+		System.out.println(minimalDualClauses.size());	
 	}
 
 }
