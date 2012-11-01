@@ -57,8 +57,6 @@ public class DualSolver implements Solver {
 		this.theory = theory;
 		buildQuantumTable();
 		
-//		printQuantumTable();
-		
 		List<SearchState> openedStates = calculateInitialOpenedStates();
 		List<SearchState> closedStates = new ArrayList<SearchState>();
 		List<SearchState> finalStates = new ArrayList<SearchState>();
@@ -350,42 +348,14 @@ public class DualSolver implements Solver {
 		//step 1
 		List<Integer> possibleExtensions = determinePossibleExtensions(currentState);
 		
-//		System.out.println("First possible extensions: "+possibleExtensions);
-		
 		//step 2
 		sortQuantumsAccordingToHeuristic(possibleExtensions, currentState);
 		
-//		String tabs = "";
-//		for(int i=1; i<currentState.getQuantums().size(); i++){
-//			tabs += "\t";
-//		}
-//		
-//		System.out.print(tabs+"Selected: ");
-//		for(Integer quantum: currentState.getQuantums()){
-//			System.out.print(quantum + ", ");
-//		}
-//		System.out.println(tabs+"");
-//		
-//		System.out.print(tabs+"Gap: ");
-//		System.out.println(BitWiseUtils.bitRepresentation(currentState.getGap()));
-//		
-//		System.out.print(tabs+"Possible extensions: ");
-//		for(int i=0; i< possibleExtensions.size(); i++){
-//			System.out.print(possibleExtensions.get(i) + ", ");
-//		}
-//		System.out.println(tabs+"");
-//		
-//		System.out.print(tabs+"Forbidden quanta: ");
-//		for(Integer quantum: currentState.getForbiddenQuantums()){
-//			System.out.print(quantum + ", ");
-//		}
-//		System.out.println(tabs+"");
 		
 		//step 3
 		List<Clause> gapConditions = gapConditions(currentState);
 		for(Clause clause: gapConditions){
 			if(!intersects(clause, possibleExtensions)){
-//				System.out.println(tabs+"------");
 				return new ArrayList<SearchState>();
 			}
 		}
@@ -426,18 +396,7 @@ public class DualSolver implements Solver {
 			}
 		}
 		
-//		System.out.print(tabs+"used: ");
-//		for(Integer quantum: usedQuantums){
-//			System.out.print(quantum + ", ");
-//		}
-//		System.out.println(tabs+"");
-//		
-//		System.out.print(tabs+"refused: ");
-//		for(Integer quantum: refused){
-//			System.out.print(quantum + ", ");
-//		}
-//		System.out.println(tabs+"");
-		
+// MELHORIA 1		
 //		List<SearchState> sucessorsWithFuture = new ArrayList<SearchState>();
 //		for(SearchState sucessor: sucessors){
 //			List<Clause> gapConditionsSucessor = gapConditions(sucessor);
@@ -466,12 +425,14 @@ public class DualSolver implements Solver {
 		List<Clause> gapConditions = new ArrayList<Clause>();
 
 		Set<Integer> mirrorQuantums = calculateMirror(state.getQuantums());
+// MELHORIA 2
 //		Set<Integer> mirrorQuantums = state.getForbiddenQuantums();
 		List<Integer> clausesInGap = getClausesFromGap(state.getGap());
 		
 		for (Integer clause : clausesInGap) {
-			if (!intersects(clause, mirrorQuantums))
-				continue;
+// MELHORIA 3
+//			if (!intersects(clause, mirrorQuantums))
+//				continue;
 
 			Clause clone = new Clause(theory.getClauses().get(clause));
 			removeLiteralsOfQuantumsFromClause(mirrorQuantums, clone);
@@ -489,8 +450,7 @@ public class DualSolver implements Solver {
 	}
 	
 	
-	//FIXME this function and the function above indicates that we can represent clauses as byte[] also
-	
+	@SuppressWarnings("unused")
 	private boolean intersects(Integer clause, Collection<Integer> quantums) {
 
 		int pos = (coordinatesArraySize -1) - (clause / 8);
@@ -524,11 +484,6 @@ public class DualSolver implements Solver {
 		List<Integer> clausesInGap = new ArrayList<Integer>();
 		
 		for(int i=0; i<clauses.size(); i++){
-			
-//			int pos = i / 8;
-//			int piece = coordinatesArraySize - (pos +1);
-//
-//			byte b = (byte) ((int)(Math.pow(2, i)) >>> (pos*8));
 			
 			int pos = (coordinatesArraySize -1) - (i / 8);
 			int exp = i % 8;
@@ -585,6 +540,7 @@ public class DualSolver implements Solver {
 		return literalsInTheClausesOfGap;
 	}
 	
+	@SuppressWarnings("unused")
 	private boolean haveFuture(List<Clause> nextStateGapConditions, SearchState state){
 		
 		for(Clause clause: nextStateGapConditions){
@@ -715,59 +671,37 @@ public class DualSolver implements Solver {
 
 	// Debug operations
 	
-	private void printQuantumTable() {
-		
-		for(int i=theory.getNumberOfVariables()*-1; i<= theory.getNumberOfVariables(); i++){
-			
-			if(i==0) continue;
-			
-			System.out.print(i+" -> ");
-			byte[] coordinates = getCoordinates(i);
-			
-			String representation = "";
-			for(int j=coordinatesArraySize-1; j>-1; j--){
-				String bits = BitWiseUtils.bitRepresentation(coordinates[j]); 
-				representation = bits + " " + representation; 
-			}
-			
-			System.out.print(representation);
-			System.out.println("");
-			
-		}
-		
-	}
-	
 	// Main
 	
 	public static void main(String[] args) throws IOException {
 		
 		DimacsParser parser = new DimacsParser();
 
-//		String[] theories = new String[] {
-//											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0110.cnf",
-//											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0111.cnf",
-//											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0112.cnf",
-//											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0113.cnf",
-//											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0114.cnf",
-//											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0115.cnf",
-//											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0116.cnf",
-//											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0117.cnf",
-//											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0118.cnf",
-//											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0119.cnf"
-//										};
-
 		String[] theories = new String[] {
-											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0110.cnf",
-											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0111.cnf",
-											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0112.cnf",
-											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0113.cnf",
-											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0114.cnf",
-											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0115.cnf",
-											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0116.cnf",
-											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0117.cnf",
-											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0118.cnf",
-											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0119.cnf"
+											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0110.cnf",
+											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0111.cnf",
+											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0112.cnf",
+											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0113.cnf",
+											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0114.cnf",
+											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0115.cnf",
+											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0116.cnf",
+											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0117.cnf",
+											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0118.cnf",
+											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0119.cnf"
 										};
+
+//		String[] theories = new String[] {
+//											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0110.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0111.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0112.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0113.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0114.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0115.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0116.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0117.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0118.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0119.cnf"
+//										};
 		
 //		String[] theories = new String[] {	"/home/murillo/Dropbox/tcc/satlib/uf75-325/uf75-010.cnf",
 //				 							"/home/murillo/Dropbox/tcc/satlib/uf75-325/uf75-011.cnf",
@@ -794,6 +728,8 @@ public class DualSolver implements Solver {
 
 		DualSolver solver =  new DualSolver();
 
+		System.out.println("teoria | TP | IP | TT | IT | Max. mem. | Wd");
+		
 		for(String t: theories){
 			
 			System.out.print(t.substring(41)+"| ");
