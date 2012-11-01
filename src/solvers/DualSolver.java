@@ -397,16 +397,16 @@ public class DualSolver implements Solver {
 		}
 		
 // MELHORIA 1		
-//		List<SearchState> sucessorsWithFuture = new ArrayList<SearchState>();
-//		for(SearchState sucessor: sucessors){
-//			List<Clause> gapConditionsSucessor = gapConditions(sucessor);
-//			if(haveFuture(gapConditionsSucessor, sucessor)){
-//				sucessorsWithFuture.add(sucessor);
-//			} 
-//		}
-//		return sucessorsWithFuture;
+		List<SearchState> sucessorsWithFuture = new ArrayList<SearchState>();
+		for(SearchState sucessor: sucessors){
+			List<Clause> gapConditionsSucessor = gapConditions(sucessor);
+			if(haveFuture(gapConditionsSucessor, sucessor)){
+				sucessorsWithFuture.add(sucessor);
+			} 
+		}
+		return sucessorsWithFuture;
 		
-		return sucessors;
+//		return sucessors;
 	}
 
 	
@@ -424,15 +424,15 @@ public class DualSolver implements Solver {
 
 		List<Clause> gapConditions = new ArrayList<Clause>();
 
-		Set<Integer> mirrorQuantums = calculateMirror(state.getQuantums());
+//		Set<Integer> mirrorQuantums = calculateMirror(state.getQuantums());
 // MELHORIA 2
-//		Set<Integer> mirrorQuantums = state.getForbiddenQuantums();
+		Set<Integer> mirrorQuantums = state.getForbiddenQuantums();
 		List<Integer> clausesInGap = getClausesFromGap(state.getGap());
 		
 		for (Integer clause : clausesInGap) {
 // MELHORIA 3
-//			if (!intersects(clause, mirrorQuantums))
-//				continue;
+			if (!intersects(clause, mirrorQuantums))
+				continue;
 
 			Clause clone = new Clause(theory.getClauses().get(clause));
 			removeLiteralsOfQuantumsFromClause(mirrorQuantums, clone);
