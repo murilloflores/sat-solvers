@@ -63,7 +63,7 @@ public class DualSolver implements Solver {
 		
 		while(!openedStates.isEmpty()){
 			loops++;
-			SearchState currentState = getStateWithSmallestGap(openedStates);
+			SearchState currentState = getStateWithEstimatedLowestCost(openedStates);
 
 			if(isFinalState(currentState)){
 				if(loopsFirst == 0){
@@ -105,24 +105,34 @@ public class DualSolver implements Solver {
 		return BitWiseUtils.countOnes(state.getGap()) == 0;
 	}
 	
-	private SearchState getStateWithSmallestGap(List<SearchState> openedStates) {
+	private SearchState getStateWithEstimatedLowestCost(List<SearchState> openedStates) {
 	
-		int minorGapSize = BitWiseUtils.countOnes(openedStates.get(0).getGap());
-		int bestStateIndex = 0;
+		int firstStateIndex = 0;
+		SearchState firstState = openedStates.get(firstStateIndex);
+		int firstStateGapSize = BitWiseUtils.countOnes(firstState.getGap()); // h(x)
+		int firstStateSizeFromTheBeggining = firstState.getQuantums().size(); // g(x)
+		int firstStateEstimatedCost = firstStateSizeFromTheBeggining + firstStateGapSize; //f(x)
+		
+		int lowestEstimatedCost = firstStateEstimatedCost;
+		int stateWithLowestEstimatedCostIndex = firstStateIndex;
 		
 		for(int i=0; i<openedStates.size(); i++){
 			
-			byte[] gap = openedStates.get(i).getGap();
-			int gapSize = BitWiseUtils.countOnes(gap);
+			SearchState currentState = openedStates.get(i);
+			int gapSize = BitWiseUtils.countOnes(currentState.getGap()); // h(x)
+			int sizeFromTheBeginnig = currentState.getQuantums().size(); // g(x)
 			
-			if(gapSize < minorGapSize){
-				minorGapSize = gapSize;
-				bestStateIndex = i;
+			int currentStateEstimatedCost = sizeFromTheBeginnig + gapSize; // f(x)
+			
+			
+			if(currentStateEstimatedCost < lowestEstimatedCost){
+				lowestEstimatedCost = currentStateEstimatedCost;
+				stateWithLowestEstimatedCostIndex = i;
 			}
 			
 		}
 		
-		return openedStates.get(bestStateIndex);
+		return openedStates.get(stateWithLowestEstimatedCostIndex);
 		
 	}
 	
@@ -677,21 +687,21 @@ public class DualSolver implements Solver {
 		
 		DimacsParser parser = new DimacsParser();
 
-		String[] theories = new String[] {
-											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0110.cnf",
-											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0111.cnf",
-											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0112.cnf",
-											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0113.cnf",
-											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0114.cnf",
-											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0115.cnf",
-											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0116.cnf",
-											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0117.cnf",
-											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0118.cnf",
-											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0119.cnf"
-										};
-
 //		String[] theories = new String[] {
-//											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0110.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0110.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0111.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0112.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0113.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0114.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0115.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0116.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0117.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0118.cnf",
+//											"/home/murillo/Dropbox/tcc/satlib/uf20-91/uf20-0119.cnf"
+//										};
+
+		String[] theories = new String[] {
+											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0110.cnf"
 //											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0111.cnf",
 //											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0112.cnf",
 //											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0113.cnf",
@@ -701,7 +711,7 @@ public class DualSolver implements Solver {
 //											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0117.cnf",
 //											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0118.cnf",
 //											"/home/murillo/Dropbox/tcc/satlib/uf50-218/uf50-0119.cnf"
-//										};
+										};
 		
 //		String[] theories = new String[] {	"/home/murillo/Dropbox/tcc/satlib/uf75-325/uf75-010.cnf",
 //				 							"/home/murillo/Dropbox/tcc/satlib/uf75-325/uf75-011.cnf",
